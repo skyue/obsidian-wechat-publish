@@ -5,14 +5,14 @@ var PublishModal = class extends import_obsidian10.Modal {
     this.fileName = fileName;
   }
   onOpen() {
-    this.modalEl.addClass("wechat-mp-publisher-publish-modal");
+    this.modalEl.addClass("wechat-publish-publish-modal");
     this.titleEl.setText(`发布《${this.fileName}》`);
-    this.progressEl = this.contentEl.createDiv({ cls: "wechat-mp-publisher-publish-progress" });
+    this.progressEl = this.contentEl.createDiv({ cls: "wechat-publish-publish-progress" });
     this.progressEl.setText("正在准备……");
   }
   onClose() {
     this.contentEl.empty();
-    this.modalEl.removeClass("wechat-mp-publisher-publish-modal");
+    this.modalEl.removeClass("wechat-publish-publish-modal");
   }
   setProgress(message) {
     if (this.progressEl) {
@@ -22,8 +22,8 @@ var PublishModal = class extends import_obsidian10.Modal {
   showSuccess(message) {
     this.titleEl.setText("发布成功");
     this.contentEl.empty();
-    this.contentEl.createDiv({ cls: "wechat-mp-publisher-publish-result", text: message });
-    var buttonContainer = this.contentEl.createDiv({ cls: "wechat-mp-publisher-publish-buttons" });
+    this.contentEl.createDiv({ cls: "wechat-publish-publish-result", text: message });
+    var buttonContainer = this.contentEl.createDiv({ cls: "wechat-publish-publish-buttons" });
     new import_obsidian10.Setting(buttonContainer).addButton((btn) => {
       btn.setButtonText("打开公众号后台").setCta().onClick(() => {
         this.plugin.openWechatPlatform();
@@ -36,8 +36,8 @@ var PublishModal = class extends import_obsidian10.Modal {
   showFailure(message) {
     this.titleEl.setText("发布失败");
     this.contentEl.empty();
-    this.contentEl.createDiv({ cls: "wechat-mp-publisher-publish-result wechat-mp-publisher-publish-failure", text: message });
-    var buttonContainer = this.contentEl.createDiv({ cls: "wechat-mp-publisher-publish-buttons" });
+    this.contentEl.createDiv({ cls: "wechat-publish-publish-result wechat-publish-publish-failure", text: message });
+    var buttonContainer = this.contentEl.createDiv({ cls: "wechat-publish-publish-buttons" });
     new import_obsidian10.Setting(buttonContainer).addButton((btn) => {
       btn.setButtonText("关闭").setCta().onClick(() => this.close());
     });

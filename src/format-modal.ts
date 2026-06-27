@@ -14,14 +14,14 @@ var FormatModal = class extends import_obsidian2.Modal {
     const { contentEl, titleEl } = this;
     titleEl.setText("格式");
     contentEl.empty();
-    this.modalEl.addClass("wechat-mp-publisher-style-modal");
+    this.modalEl.addClass("wechat-publish-style-modal");
     this.buildThemeSection(contentEl);
     this.buildLayoutSection(contentEl);
     this.buildSavedSchemesSection(contentEl);
     this.buildAdvancedSection(contentEl);
   }
   onClose() {
-    this.modalEl.removeClass("wechat-mp-publisher-style-modal");
+    this.modalEl.removeClass("wechat-publish-style-modal");
     this.contentEl.empty();
   }
   buildThemeSection(container2) {
@@ -70,7 +70,7 @@ var FormatModal = class extends import_obsidian2.Modal {
     );
     if (this.plugin.settings.savedStylePresets.length === 0) {
       section.createDiv({
-        cls: "wechat-mp-publisher-style-empty",
+        cls: "wechat-publish-style-empty",
         text: "还没有保存过格式方案。先去高级微调里调一套，再保存成自己的方案。"
       });
     } else {
@@ -111,13 +111,13 @@ var FormatModal = class extends import_obsidian2.Modal {
     });
   }
   createSection(container2, title2, description) {
-    const section = container2.createDiv({ cls: "wechat-mp-publisher-style-section" });
+    const section = container2.createDiv({ cls: "wechat-publish-style-section" });
     section.createEl("h3", {
-      cls: "wechat-mp-publisher-style-section-title",
+      cls: "wechat-publish-style-section-title",
       text: title2
     });
     section.createEl("p", {
-      cls: "wechat-mp-publisher-style-section-desc",
+      cls: "wechat-publish-style-section-desc",
       text: description
     });
     return section;

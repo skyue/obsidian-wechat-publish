@@ -679,14 +679,14 @@ async function normalizeWechatAsset(asset) {
       if (png2.bytes.byteLength <= ARTICLE_MAX_BYTES) {
         return png2;
       }
-      console.debug("[WeChat MP Publisher] 转 PNG 后体积超限，降级 JPEG 压缩", {
+      console.debug("[WeChat Publish] 转 PNG 后体积超限，降级 JPEG 压缩", {
         filename: asset.filename,
         contentType: asset.contentType,
         originalBytes: asset.bytes.byteLength,
         pngBytes: png2.bytes.byteLength
       });
     } catch (error3) {
-      console.warn("[WeChat MP Publisher] 正文图片转 PNG 失败，回退 JPEG 压缩", {
+      console.warn("[WeChat Publish] 正文图片转 PNG 失败，回退 JPEG 压缩", {
         filename: asset.filename,
         contentType: asset.contentType,
         error: error3
@@ -1047,7 +1047,7 @@ async function rehostArticleImages(app, file, html5, accessToken, account, artic
   const refs = extractHtmlImageRefs(html5);
   var records = articleImageRecords ? articleImageRecords.slice() : [];
   console.debug(
-    "[WeChat MP Publisher] 发布前图片清单",
+    "[WeChat Publish] 发布前图片清单",
     refs.map((ref, index2) => ({
       index: index2 + 1,
       srcPreview: ref.src.slice(0, 120),
@@ -1056,7 +1056,7 @@ async function rehostArticleImages(app, file, html5, accessToken, account, artic
     }))
   );
   if (imageElements.length !== refs.length) {
-    console.warn("[WeChat MP Publisher] 图片节点数量与提取结果不一致", {
+    console.warn("[WeChat Publish] 图片节点数量与提取结果不一致", {
       imageElementCount: imageElements.length,
       refCount: refs.length
     });

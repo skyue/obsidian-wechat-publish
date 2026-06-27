@@ -1,5 +1,5 @@
 /**
- * Build script for WeChat MP Publisher.
+ * Build script for WeChat Publish.
  *
  * Approach:
  * 1. Read each extracted source file

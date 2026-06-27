@@ -63,16 +63,16 @@ var AccountConfigModal = class extends import_obsidian.Modal {
       });
     });
     if (this.showPasteImport) {
-      const importEl = contentEl.createDiv({ cls: "wechat-mp-publisher-paste-import" });
+      const importEl = contentEl.createDiv({ cls: "wechat-publish-paste-import" });
       importEl.createEl("p", {
-        cls: "wechat-mp-publisher-paste-import__hint",
+        cls: "wechat-publish-paste-import__hint",
         text: "将微信公众号后台「基础信息」页的内容全选复制后粘贴到下方，自动识别账号名、AppID 和 AppSecret："
       });
       const textarea = importEl.createEl("textarea", {
-        cls: "wechat-mp-publisher-paste-import__textarea",
+        cls: "wechat-publish-paste-import__textarea",
         attr: { placeholder: "公众号\n你的公众号名称\nAppID\nwx...\nAppSecret\n..." }
       });
-      const resultEl = importEl.createEl("div", { cls: "wechat-mp-publisher-paste-import__result" });
+      const resultEl = importEl.createEl("div", { cls: "wechat-publish-paste-import__result" });
       new import_obsidian.Setting(importEl).addButton((button) => {
         button.setButtonText("识别并新增账号");
         button.setCta();
@@ -89,7 +89,7 @@ var AccountConfigModal = class extends import_obsidian.Modal {
           const isValidSecret = appSecret && /^[a-zA-Z0-9]+$/.test(appSecret);
           if (!name || !isValidAppId || !isValidSecret) {
             resultEl.textContent = "❌ 未能识别格式，请确认已复制微信公众号平台「基础信息」页的完整内容（包含「公众号」「AppID」「AppSecret」字样）。";
-            resultEl.className = "wechat-mp-publisher-paste-import__result wechat-mp-publisher-paste-import__result--error";
+            resultEl.className = "wechat-publish-paste-import__result wechat-publish-paste-import__result--error";
             return;
           }
           const newAccount = createEmptyAccount();
@@ -116,14 +116,14 @@ var AccountConfigModal = class extends import_obsidian.Modal {
       if (this.selectedIndex >= accounts.length) {
         this.selectedIndex = accounts.length - 1;
       }
-      const tabRowEl = contentEl.createDiv({ cls: "wechat-mp-publisher-account-tabs" });
+      const tabRowEl = contentEl.createDiv({ cls: "wechat-publish-account-tabs" });
       accounts.forEach((account2, idx) => {
         const isSelected = idx === this.selectedIndex;
         const tabEl = tabRowEl.createDiv({
-          cls: "wechat-mp-publisher-account-tab" + (isSelected ? " wechat-mp-publisher-account-tab--selected" : "")
+          cls: "wechat-publish-account-tab" + (isSelected ? " wechat-publish-account-tab--selected" : "")
         });
         tabEl.createEl("span", {
-          cls: "wechat-mp-publisher-account-tab__name",
+          cls: "wechat-publish-account-tab__name",
           text: account2.name || "未命名账号"
         });
         tabEl.addEventListener("click", () => {
@@ -132,11 +132,11 @@ var AccountConfigModal = class extends import_obsidian.Modal {
         });
       });
       const account = accounts[this.selectedIndex];
-      const cardEl = contentEl.createDiv({ cls: "wechat-mp-publisher-account-card" });
+      const cardEl = contentEl.createDiv({ cls: "wechat-publish-account-card" });
       new import_obsidian.Setting(cardEl).setName("账号名称").setDesc("例如：主号 / 备用号").addText((text6) => {
         text6.setValue(account.name).onChange((value2) => {
           account.name = value2.trim() || "未命名账号";
-          const tabNameEl = tabRowEl.querySelectorAll(".wechat-mp-publisher-account-tab__name")[this.selectedIndex];
+          const tabNameEl = tabRowEl.querySelectorAll(".wechat-publish-account-tab__name")[this.selectedIndex];
           if (tabNameEl) tabNameEl.textContent = account.name;
         });
       }).addExtraButton((button) => {

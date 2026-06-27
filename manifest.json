@@ -1,10 +1,10 @@
 {
-  "id": "wechat-mp-publisher",
-  "name": "WeChat MP Publisher",
+  "id": "wechat-publish",
+  "name": "WeChat Publish",
   "version": "1.0.0",
   "minAppVersion": "1.5.0",
   "description": "微信公众号发布工具 | Publish WeChat Official Account articles with formatting, image upload, and draft push.",
   "author": "SKYue",
-  "authorUrl": "https://github.com/RanceLee233",
+  "authorUrl": "https://github.com/skyue/obsidian-wechat-publish",
   "isDesktopOnly": false
 }

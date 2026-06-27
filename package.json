@@ -1,7 +1,7 @@
 {
-  "name": "wechat-mp-publisher",
+  "name": "wechat-publish",
   "version": "1.0.0",
-  "description": "Obsidian WeChat MP Publisher — Write in Obsidian, publish to WeChat Official Account",
+  "description": "Obsidian WeChat Publish — Write in Obsidian, publish to WeChat Official Account",
   "main": "main.js",
   "scripts": {
     "build": "node scripts/build.cjs",
