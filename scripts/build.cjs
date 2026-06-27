@@ -1,5 +1,5 @@
 /**
- * Build script for WeChat Publish.
+ * Build script for WeiXin MP.
  *
  * Approach:
  * 1. Read each extracted source file
@@ -117,7 +117,7 @@ for (const { rel, content } of transformedParts) {
 
 // Add the default export
 combined += '\n// Default export for Obsidian plugin system\n';
-combined += 'export default WeChatMpPublisherPlugin;\n';
+combined += 'export default WeiXinMpPlugin;\n';
 
 // Write the combined entry
 const entryPath = path.join(ROOT, 'src', '_bundle.ts');

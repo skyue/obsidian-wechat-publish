@@ -275,7 +275,7 @@ async function getMathJaxContext() {
 }
 function createHiddenRenderHost(className) {
   const host = document.createElement("div");
-  host.className = `wechat-publish-hidden-host ${className}`;
+  host.className = `weixin-mp-hidden-host ${className}`;
   document.body.appendChild(host);
   return host;
 }

@@ -1,7 +1,7 @@
 {
-  "name": "wechat-publish",
+  "name": "weixin-mp",
   "version": "1.0.0",
-  "description": "Obsidian WeChat Publish — Write in Obsidian, publish to WeChat Official Account",
+  "description": "Obsidian WeiXin MP — Write in Obsidian, publish to WeChat Official Account",
   "main": "main.js",
   "scripts": {
     "build": "node scripts/build.cjs",

@@ -1,9 +1,9 @@
 /* ============================================================
-   WeChat Publisher — Preview View (Option B hi-fi)
+   WeiXin MP — Preview View
    Uses Obsidian native CSS vars; light/dark handled by host.
 ============================================================ */
 
-.wechat-publish-view {
+.weixin-mp-view {
   --wp-accent: var(--interactive-accent);
   --wp-accent-hover: var(--interactive-accent-hover, var(--interactive-accent));
   --wp-shadow-s: 0 1px 2px rgba(0, 0, 0, 0.04);
@@ -19,7 +19,7 @@
   flex-direction: column;
 }
 
-.theme-dark .wechat-publish-view {
+.theme-dark .weixin-mp-view {
   --wp-shadow-s: 0 1px 2px rgba(0, 0, 0, 0.3);
   --wp-shadow-m: 0 4px 14px rgba(0, 0, 0, 0.35);
 }
@@ -735,7 +735,7 @@
   color: var(--text-normal);
 }
 
-.wechat-publish-view--toolbar-hidden .wp-toolbar-hidden-handle {
+.weixin-mp-view--toolbar-hidden .wp-toolbar-hidden-handle {
   display: inline-block;
 }
 
@@ -784,12 +784,12 @@
    (Some settings / modal code still references old classes.)
 ============================================================ */
 
-.wechat-publish-settings-note {
+.weixin-mp-settings-note {
   margin-bottom: 20px;
   color: var(--text-muted);
 }
 
-.wechat-publish-account-card {
+.weixin-mp-account-card {
   margin-bottom: 16px;
   padding: 12px;
   border: 1px solid var(--background-modifier-border);
@@ -797,7 +797,7 @@
   background: var(--background-secondary);
 }
 
-.wechat-publish-purchase-card {
+.weixin-mp-purchase-card {
   margin-top: 20px;
   padding: 16px;
   border: 1px solid rgba(15, 76, 129, 0.14);
@@ -805,20 +805,20 @@
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(244, 248, 252, 0.92));
 }
 
-.wechat-publish-about__intro {
+.weixin-mp-about__intro {
   margin: 0 0 8px;
   font-size: 0.96em;
   line-height: 1.6;
   color: var(--text-normal);
 }
 
-.wechat-publish-about__version {
+.weixin-mp-about__version {
   margin-bottom: 16px;
   font-size: 0.86em;
   color: var(--text-muted);
 }
 
-.wechat-publish-about__card {
+.weixin-mp-about__card {
   margin: 12px 0 18px;
   padding: 16px;
   border: 1px solid rgba(15, 76, 129, 0.14);
@@ -827,13 +827,13 @@
   text-align: center;
 }
 
-.wechat-publish-about__card-title {
+.weixin-mp-about__card-title {
   margin-bottom: 10px;
   font-weight: 600;
   color: var(--text-normal);
 }
 
-.wechat-publish-about__profile {
+.weixin-mp-about__profile {
   display: block;
   margin: 0 auto 10px;
   max-width: 260px;
@@ -843,13 +843,13 @@
   background: var(--background-primary);
 }
 
-.wechat-publish-about__feedback {
+.weixin-mp-about__feedback {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-.wechat-publish-about__qr {
+.weixin-mp-about__qr {
   display: block;
   margin: 0 auto 10px;
   width: 180px;
@@ -859,14 +859,14 @@
   background: var(--background-primary);
 }
 
-.wechat-publish-about__card-hint {
+.weixin-mp-about__card-hint {
   margin-top: 4px;
   font-size: 0.88em;
   color: var(--text-muted);
   line-height: 1.6;
 }
 
-.wechat-publish-about__terms {
+.weixin-mp-about__terms {
   margin: 12px 0 16px;
   padding: 14px 16px;
   border: 1px solid var(--background-modifier-border);
@@ -874,27 +874,27 @@
   background: var(--background-secondary);
 }
 
-.wechat-publish-about__terms-title {
+.weixin-mp-about__terms-title {
   margin-bottom: 6px;
   font-weight: 600;
   color: var(--text-normal);
 }
 
-.wechat-publish-about__terms-list {
+.weixin-mp-about__terms-list {
   margin: 0;
   padding-left: 20px;
   color: var(--text-normal);
   line-height: 1.7;
 }
 
-.wechat-publish-about__links {
+.weixin-mp-about__links {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
   margin-top: 4px;
 }
 
-.wechat-publish-about__link {
+.weixin-mp-about__link {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -908,18 +908,18 @@
   cursor: pointer;
 }
 
-.wechat-publish-about__link:hover {
+.weixin-mp-about__link:hover {
   border-color: var(--interactive-accent);
   color: var(--interactive-accent);
 }
 
-.wechat-publish-purchase-card__line {
+.weixin-mp-purchase-card__line {
   margin-bottom: 6px;
   color: var(--text-normal);
   line-height: 1.6;
 }
 
-.wechat-publish-purchase-card__qr {
+.weixin-mp-purchase-card__qr {
   display: block;
   margin: 12px auto 8px;
   width: 180px;
@@ -928,34 +928,34 @@
   object-fit: cover;
 }
 
-.wechat-publish-purchase-card__line--hint {
+.weixin-mp-purchase-card__line--hint {
   margin-top: 6px;
   font-size: 0.88em;
   color: var(--text-muted);
 }
 
-.wechat-publish-activate-result {
+.weixin-mp-activate-result {
   margin: 8px 0 4px;
   min-height: 0;
 }
 
-.wechat-publish-activate-result--success {
+.weixin-mp-activate-result--success {
   color: var(--color-green);
   font-size: 0.92em;
   margin-bottom: 4px;
 }
 
-.wechat-publish-activate-result--hint {
+.weixin-mp-activate-result--hint {
   color: var(--text-muted);
   font-size: 0.88em;
 }
 
-.wechat-publish-activate-result--error {
+.weixin-mp-activate-result--error {
   color: var(--color-red);
   font-size: 0.92em;
 }
 
-.wechat-publish-account-badge {
+.weixin-mp-account-badge {
   display: inline-block;
   margin-left: 8px;
   padding: 1px 7px;
@@ -965,24 +965,24 @@
   vertical-align: middle;
 }
 
-.wechat-publish-account-badge--active {
+.weixin-mp-account-badge--active {
   background: rgba(7, 193, 96, 0.15);
   color: #07c160;
 }
 
-.wechat-publish-account-badge--inactive {
+.weixin-mp-account-badge--inactive {
   background: rgba(0, 0, 0, 0.06);
   color: var(--text-muted);
 }
 
-.wechat-publish-activate-account-list {
+.weixin-mp-activate-account-list {
   display: flex;
   flex-direction: column;
   gap: 6px;
   margin: 8px 0 16px;
 }
 
-.wechat-publish-activate-account-item {
+.weixin-mp-activate-account-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -993,34 +993,34 @@
   transition: border-color 0.15s, background 0.15s;
 }
 
-.wechat-publish-activate-account-item:hover {
+.weixin-mp-activate-account-item:hover {
   background: var(--background-modifier-hover);
 }
 
-.wechat-publish-activate-account-item--selected {
+.weixin-mp-activate-account-item--selected {
   border-color: #07c160;
   background: rgba(7, 193, 96, 0.06);
 }
 
-.wechat-publish-activate-account-item__name {
+.weixin-mp-activate-account-item__name {
   font-weight: 500;
   font-size: 0.95em;
 }
 
-.wechat-publish-activate-account-item__appid {
+.weixin-mp-activate-account-item__appid {
   font-size: 0.82em;
   color: var(--text-muted);
   margin-top: 2px;
 }
 
-.wechat-publish-account-tabs {
+.weixin-mp-account-tabs {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   margin: 12px 0 8px;
 }
 
-.wechat-publish-account-tab {
+.weixin-mp-account-tab {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -1033,48 +1033,48 @@
   white-space: nowrap;
 }
 
-.wechat-publish-account-tab:hover {
+.weixin-mp-account-tab:hover {
   background: var(--background-modifier-hover);
 }
 
-.wechat-publish-account-tab--selected {
+.weixin-mp-account-tab--selected {
   border-color: #07c160;
   background: rgba(7, 193, 96, 0.06);
   font-weight: 500;
 }
 
-.wechat-publish-account-tab__name {
+.weixin-mp-account-tab__name {
   max-width: 120px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.wechat-publish-license-status--active {
+.weixin-mp-license-status--active {
   color: #07c160 !important;
 }
 
-.wechat-publish-license-status--warn {
+.weixin-mp-license-status--warn {
   color: var(--color-orange, #e6a23c) !important;
 }
 
-.wechat-publish-license-status--none {
+.weixin-mp-license-status--none {
   color: var(--text-muted) !important;
 }
 
-.wechat-publish-paste-import {
+.weixin-mp-paste-import {
   margin: 8px 0;
   padding: 14px 16px;
   border: 1px dashed var(--background-modifier-border);
   border-radius: 8px;
 }
 
-.wechat-publish-paste-import__hint {
+.weixin-mp-paste-import__hint {
   margin: 0 0 8px;
   font-size: 0.88em;
   color: var(--text-muted);
 }
 
-.wechat-publish-paste-import__textarea {
+.weixin-mp-paste-import__textarea {
   width: 100%;
   min-height: 72px;
   resize: vertical;
@@ -1088,22 +1088,22 @@
   margin-bottom: 6px;
 }
 
-.wechat-publish-paste-import__result {
+.weixin-mp-paste-import__result {
   font-size: 0.88em;
   margin-bottom: 6px;
   min-height: 1em;
 }
 
-.wechat-publish-paste-import__result--error {
+.weixin-mp-paste-import__result--error {
   color: var(--color-red);
 }
 
-.wechat-publish-style-modal .modal-content {
+.weixin-mp-style-modal .modal-content {
   max-height: 78vh;
   overflow-y: auto;
 }
 
-.wechat-publish-style-section {
+.weixin-mp-style-section {
   margin-bottom: 16px;
   padding: 14px;
   border: 1px solid rgba(15, 76, 129, 0.12);
@@ -1111,40 +1111,40 @@
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(246, 248, 251, 0.9));
 }
 
-.wechat-publish-style-section-title {
+.weixin-mp-style-section-title {
   margin: 0 0 4px;
   color: var(--text-normal);
   font-size: 15px;
 }
 
-.wechat-publish-style-section-desc {
+.weixin-mp-style-section-desc {
   margin: 0 0 12px;
   color: var(--text-muted);
   font-size: 12px;
   line-height: 1.6;
 }
 
-.wechat-publish-slider-setting .setting-item-control {
+.weixin-mp-slider-setting .setting-item-control {
   align-items: center;
   gap: 10px;
 }
 
-.wechat-publish-slider-setting input[type="range"] {
+.weixin-mp-slider-setting input[type="range"] {
   min-width: 180px;
 }
 
-.wechat-publish-slider-setting input[type="number"] {
+.weixin-mp-slider-setting input[type="number"] {
   width: 84px;
   padding: 6px 8px;
   border: 1px solid var(--background-modifier-border);
   border-radius: 10px;
 }
 
-.wechat-publish-style-actions {
+.weixin-mp-style-actions {
   margin-top: 12px;
 }
 
-.wechat-publish-style-empty {
+.weixin-mp-style-empty {
   padding: 12px;
   border: 1px dashed var(--background-modifier-border);
   border-radius: 12px;
@@ -1168,35 +1168,35 @@
 }
 
 @media (max-width: 900px) {
-  .wechat-publish-slider-setting .setting-item-control {
+  .weixin-mp-slider-setting .setting-item-control {
     flex-wrap: wrap;
     justify-content: flex-start;
   }
 }
 
-.wechat-publish-publish-modal .wechat-publish-publish-progress {
+.weixin-mp-publish-modal .weixin-mp-publish-progress {
   font-size: var(--font-ui-medium);
   color: var(--text-muted);
   padding: 16px 0;
   line-height: 1.6;
 }
 
-.wechat-publish-publish-modal .wechat-publish-publish-result {
+.weixin-mp-publish-modal .weixin-mp-publish-result {
   font-size: var(--font-ui-medium);
   padding: 16px 0;
   line-height: 1.6;
 }
 
-.wechat-publish-publish-modal .wechat-publish-publish-failure {
+.weixin-mp-publish-modal .weixin-mp-publish-failure {
   color: var(--text-error);
 }
 
-.wechat-publish-publish-modal .wechat-publish-publish-buttons {
+.weixin-mp-publish-modal .weixin-mp-publish-buttons {
   margin-top: 12px;
 }
 
 /* Hidden render host — positioned off-screen for MathJax/Mermaid */
-.wechat-publish-hidden-host {
+.weixin-mp-hidden-host {
   position: fixed;
   left: -99999px;
   top: -99999px;

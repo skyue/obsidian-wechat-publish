@@ -1,7 +1,7 @@
 const import_obsidian4 = require("obsidian");
-const PREVIEW_VIEW_TYPE = "wechat-publish-preview";
+const PREVIEW_VIEW_TYPE = "weixin-mp-preview";
 const SVG_NS = "http://www.w3.org/2000/svg";
-const WeChatMpPublisherPreviewView = class extends import_obsidian4.ItemView {
+const WeiXinMpPreviewView = class extends import_obsidian4.ItemView {
   constructor(leaf, plugin23) {
     super(leaf);
     this.plugin = plugin23;
@@ -59,14 +59,14 @@ const WeChatMpPublisherPreviewView = class extends import_obsidian4.ItemView {
     return PREVIEW_VIEW_TYPE;
   }
   getDisplayText() {
-    return "WeChat Publish";
+    return "WeiXin MP";
   }
   getIcon() {
     return "newspaper";
   }
   async onOpen() {
     this.containerEl.empty();
-    this.containerEl.addClass("wechat-publish-view");
+    this.containerEl.addClass("weixin-mp-view");
     this.renderToolbarHiddenHandle();
     this.renderToolbar();
     this.renderDrawer();
@@ -524,7 +524,7 @@ const WeChatMpPublisherPreviewView = class extends import_obsidian4.ItemView {
     this.moreMenuEl.createDiv({ cls: "wp-menu-sep" });
     this.addMoreMenuItem("help", "用户指南", null, () => {
       this.closeMoreMenu();
-      this.plugin.openExternalUrl("https://blog.discoverlabs.ac.cn/downloads/wechat-publish/");
+      this.plugin.openExternalUrl("https://blog.discoverlabs.ac.cn/downloads/weixin-mp/");
     });
   }
   addMoreMenuItem(icon2, text6, meta3, onClick, metaVariant = null) {
@@ -564,12 +564,12 @@ const WeChatMpPublisherPreviewView = class extends import_obsidian4.ItemView {
       this.toolbarEl?.hide();
       this.drawerEl?.hide();
       this.toolbarHiddenHandleEl?.show();
-      this.containerEl.addClass("wechat-publish-view--toolbar-hidden");
+      this.containerEl.addClass("weixin-mp-view--toolbar-hidden");
     } else {
       this.toolbarEl?.show();
       this.drawerEl?.show();
       this.toolbarHiddenHandleEl?.hide();
-      this.containerEl.removeClass("wechat-publish-view--toolbar-hidden");
+      this.containerEl.removeClass("weixin-mp-view--toolbar-hidden");
     }
   }
   // ============================================================
