@@ -1,5 +1,5 @@
 /**
- * Build script for WeChat MP Publisher (dev fork).
+ * Build script for WeChat MP Publisher.
  *
  * Approach:
  * 1. Read each extracted source file
@@ -144,23 +144,6 @@ async function build() {
     },
   });
 
-  const deploy = () => {
-    const vaultPluginDir = path.join(
-      require('os').homedir(),
-      'Downloads/obsidian_test/.obsidian/plugins/wechat-mp-publisher'
-    );
-    if (fs.existsSync(path.join(vaultPluginDir, '..'))) {
-      fs.mkdirSync(vaultPluginDir, { recursive: true });
-      fs.copyFileSync(path.join(ROOT, 'main.js'), path.join(vaultPluginDir, 'main.js'));
-      fs.copyFileSync(path.join(ROOT, 'manifest.json'), path.join(vaultPluginDir, 'manifest.json'));
-      const cssSrc = path.join(ROOT, 'styles.css');
-      if (fs.existsSync(cssSrc)) {
-        fs.copyFileSync(cssSrc, path.join(vaultPluginDir, 'styles.css'));
-      }
-      console.log(`  → Deployed to ${vaultPluginDir}`);
-    }
-  };
-
   if (isWatch) {
     await ctx.watch({
       onRebuild(err) {
@@ -169,7 +152,6 @@ async function build() {
           return;
         }
         console.log('Rebuilt main.js');
-        deploy();
       },
     });
     console.log('Watching for changes...');
@@ -178,7 +160,6 @@ async function build() {
     await ctx.rebuild();
     console.log(`Built main.js in ${Date.now() - start}ms`);
     await ctx.dispose();
-    deploy();
   }
 }
 

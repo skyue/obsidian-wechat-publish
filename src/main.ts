@@ -1,3 +1,48 @@
+var PublishModal = class extends import_obsidian10.Modal {
+  constructor(plugin2, fileName) {
+    super(plugin2.app);
+    this.plugin = plugin2;
+    this.fileName = fileName;
+  }
+  onOpen() {
+    this.modalEl.addClass("wechat-mp-publisher-publish-modal");
+    this.titleEl.setText(`发布《${this.fileName}》`);
+    this.progressEl = this.contentEl.createDiv({ cls: "wechat-mp-publisher-publish-progress" });
+    this.progressEl.setText("正在准备……");
+  }
+  onClose() {
+    this.contentEl.empty();
+    this.modalEl.removeClass("wechat-mp-publisher-publish-modal");
+  }
+  setProgress(message) {
+    if (this.progressEl) {
+      this.progressEl.setText(message);
+    }
+  }
+  showSuccess(message) {
+    this.titleEl.setText("发布成功");
+    this.contentEl.empty();
+    this.contentEl.createDiv({ cls: "wechat-mp-publisher-publish-result", text: message });
+    var buttonContainer = this.contentEl.createDiv({ cls: "wechat-mp-publisher-publish-buttons" });
+    new import_obsidian10.Setting(buttonContainer).addButton((btn) => {
+      btn.setButtonText("打开公众号后台").setCta().onClick(() => {
+        this.plugin.openWechatPlatform();
+        this.close();
+      });
+    }).addButton((btn) => {
+      btn.setButtonText("关闭").onClick(() => this.close());
+    });
+  }
+  showFailure(message) {
+    this.titleEl.setText("发布失败");
+    this.contentEl.empty();
+    this.contentEl.createDiv({ cls: "wechat-mp-publisher-publish-result wechat-mp-publisher-publish-failure", text: message });
+    var buttonContainer = this.contentEl.createDiv({ cls: "wechat-mp-publisher-publish-buttons" });
+    new import_obsidian10.Setting(buttonContainer).addButton((btn) => {
+      btn.setButtonText("关闭").setCta().onClick(() => this.close());
+    });
+  }
+};
 var WeChatMpPublisherPlugin = class extends import_obsidian10.Plugin {
   settings = DEFAULT_SETTINGS;
   themes = BUILTIN_THEMES;
@@ -110,6 +155,7 @@ var WeChatMpPublisherPlugin = class extends import_obsidian10.Plugin {
       ) : [],
       draftRecords: cloneDraftRecords(loaded?.draftRecords),
       coverMediaRecords: cloneCoverMediaRecords(loaded?.coverMediaRecords),
+      articleImageRecords: cloneArticleImageRecords(loaded?.articleImageRecords),
       savedStylePresets: Array.isArray(loaded?.savedStylePresets) ? loaded.savedStylePresets.slice(0, 5).map((preset) => ({
         id: typeof preset.id === "string" && preset.id ? preset.id : createStylePresetId(),
         name: typeof preset.name === "string" && preset.name.trim() ? preset.name.trim() : "未命名样式",
@@ -217,19 +263,6 @@ var WeChatMpPublisherPlugin = class extends import_obsidian10.Plugin {
       console.error(error3);
       new import_obsidian10.Notice(failureMessage);
     }
-  }
-  showDismissibleNotice(message, duration = 15e3) {
-    const notice = new import_obsidian10.Notice(message, duration);
-    notice.noticeEl.addEventListener(
-      "click",
-      () => {
-        notice.hide();
-      },
-      { once: true }
-    );
-  }
-  createProgressNotice(message) {
-    return new import_obsidian10.Notice(message, 0);
   }
   openWechatPlatform() {
     this.openExternalUrl(
@@ -348,11 +381,11 @@ var WeChatMpPublisherPlugin = class extends import_obsidian10.Plugin {
     }
     const url = `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${encodeURIComponent(targetAccount.appId)}&secret=${encodeURIComponent(targetAccount.appSecret)}`;
     try {
-      const response = await (0, import_obsidian10.requestUrl)({
-        url,
+      const req = buildWechatRequest(targetAccount, url, {
         method: "GET",
-        throw: false
+        requestLabel: "检测微信出口IP"
       });
+      const response = await (0, import_obsidian10.requestUrl)(req);
       const data6 = response.json;
       const message = data6?.errmsg ?? response.text ?? "";
       if (data6?.errcode === 40164 || /invalid ip/i.test(message)) {
@@ -509,6 +542,21 @@ var WeChatMpPublisherPlugin = class extends import_obsidian10.Plugin {
     this.settings.coverMediaRecords = pruneCoverMediaRecords(this.settings.coverMediaRecords);
     await this.saveSettings({ refreshPreview: false });
   }
+  async upsertArticleImageRecords(records) {
+    if (!Array.isArray(records) || records.length === 0) return;
+    for (const record of records) {
+      const existingIndex = this.settings.articleImageRecords.findIndex(
+        (item) => item.accountId === record.accountId && item.sourceKey === record.sourceKey
+      );
+      if (existingIndex >= 0) {
+        this.settings.articleImageRecords[existingIndex] = record;
+      } else {
+        this.settings.articleImageRecords.unshift(record);
+      }
+    }
+    this.settings.articleImageRecords = pruneArticleImageRecords(this.settings.articleImageRecords);
+    await this.saveSettings({ refreshPreview: false });
+  }
   async saveCurrentStylePreset(name) {
     const trimmedName = name.trim();
     if (!trimmedName) {
@@ -620,9 +668,8 @@ var WeChatMpPublisherPlugin = class extends import_obsidian10.Plugin {
       return;
     }
     this.isPublishing = true;
-    const progressNotice = this.createProgressNotice(
-      `开始发布《${payload.file.basename}》到公众号草稿箱...`
-    );
+    const publishModal = new PublishModal(this, payload.file.basename);
+    publishModal.open();
     try {
       const frontmatter = this.buildPublishFrontmatter(payload.file, payload.frontmatter, account);
       const existingDraftRecord = this.getDraftRecord(payload.file.path, account.id);
@@ -634,12 +681,16 @@ var WeChatMpPublisherPlugin = class extends import_obsidian10.Plugin {
         frontmatter,
         existingDraftMediaId: existingDraftRecord?.mediaId ?? null,
         coverMediaRecords: this.settings.coverMediaRecords,
+        articleImageRecords: this.settings.articleImageRecords,
         onProgress: (message) => {
-          progressNotice.setMessage(message);
+          publishModal.setProgress(message);
         }
       });
       if (result.coverMediaRecord) {
         await this.upsertCoverMediaRecord(result.coverMediaRecord);
+      }
+      if (result.articleImageRecords?.length) {
+        await this.upsertArticleImageRecords(result.articleImageRecords);
       }
       await this.upsertDraftRecord({
         notePath: payload.file.path,
@@ -648,18 +699,13 @@ var WeChatMpPublisherPlugin = class extends import_obsidian10.Plugin {
         title: result.title,
         updatedAt: (/* @__PURE__ */ new Date()).toISOString()
       });
-      progressNotice.hide();
-      this.showDismissibleNotice(
-        `${result.action === "updated" ? "已更新草稿" : "发布成功"}：${result.title}，已上传 ${result.imageCount} 张图片。`,
-        15e3
+      publishModal.showSuccess(
+        `${result.action === "updated" ? "已更新草稿" : "发布成功"}：${result.title}，已上传 ${result.imageCount} 张图片。`
       );
-      this.openWechatPlatform();
     } catch (error3) {
-      progressNotice.hide();
       console.error(error3);
-      this.showDismissibleNotice(
-        `发布失败：${error3 instanceof Error ? error3.message : "未知错误"}`,
-        15e3
+      publishModal.showFailure(
+        `发布失败：${error3 instanceof Error ? error3.message : "未知错误"}`
       );
     } finally {
       this.isPublishing = false;

@@ -2,6 +2,8 @@ var DRAFT_RECORD_RETENTION_DAYS = 14;
 var DRAFT_RECORD_LIMIT = 200;
 var COVER_MEDIA_RECORD_RETENTION_DAYS = 365;
 var COVER_MEDIA_RECORD_LIMIT = 500;
+var ARTICLE_IMAGE_RECORD_RETENTION_DAYS = 365;
+var ARTICLE_IMAGE_RECORD_LIMIT = 2000;
 var DEFAULT_SETTINGS = {
   defaultThemeId: "classic",
   defaultStyleId: "balanced",
@@ -16,6 +18,7 @@ var DEFAULT_SETTINGS = {
   savedStylePresets: [],
   draftRecords: [],
   coverMediaRecords: [],
+  articleImageRecords: [],
   entitlements: createEntitlementsForPlan("free")
 };
 function createEmptyAccount() {
@@ -106,5 +109,25 @@ function pruneCoverMediaRecords(coverMediaRecords) {
   }).sort((left3, right3) => {
     return new Date(right3.updatedAt).getTime() - new Date(left3.updatedAt).getTime();
   }).slice(0, COVER_MEDIA_RECORD_LIMIT);
+}
+function cloneArticleImageRecords(articleImageRecords) {
+  const normalizedRecords = Array.isArray(articleImageRecords) ? articleImageRecords.filter(
+    (record) => Boolean(record?.accountId && record?.sourceKey && record?.url)
+  ).map((record) => ({
+    accountId: String(record.accountId),
+    sourceKey: String(record.sourceKey),
+    url: String(record.url),
+    updatedAt: typeof record.updatedAt === "string" && record.updatedAt ? record.updatedAt : (/* @__PURE__ */ new Date()).toISOString()
+  })) : [];
+  return pruneArticleImageRecords(normalizedRecords);
+}
+function pruneArticleImageRecords(articleImageRecords) {
+  const cutoffTime = Date.now() - ARTICLE_IMAGE_RECORD_RETENTION_DAYS * 24 * 60 * 60 * 1e3;
+  return articleImageRecords.filter((record) => {
+    const updatedAtTime = new Date(record.updatedAt).getTime();
+    return Number.isFinite(updatedAtTime) && updatedAtTime >= cutoffTime;
+  }).sort((left3, right3) => {
+    return new Date(right3.updatedAt).getTime() - new Date(left3.updatedAt).getTime();
+  }).slice(0, ARTICLE_IMAGE_RECORD_LIMIT);
 }
 

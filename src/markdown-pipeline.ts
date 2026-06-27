@@ -384,7 +384,15 @@ function lookupOriginalAssetSource(resolvedUrl) {
   ) ?? null;
 }
 async function preprocessMarkdownForWechat(app, sourceFile, markdown2) {
-  let output2 = markdown2;
+  let output2 = markdown2.replace(
+    /(?<!!)\[\[([^\[\]]+?)\]\]/g,
+    (_match, inner2) => {
+      const parts2 = inner2.split("|");
+      const target3 = parts2[0]?.trim() ?? "";
+      const alias = parts2.slice(1).filter((p2) => p2.trim()).at(-1)?.trim();
+      return alias || target3;
+    }
+  );
   output2 = await replaceAsync(
     output2,
     /^```mermaid\r?\n([\s\S]*?)\r?\n```\s*$/gm,

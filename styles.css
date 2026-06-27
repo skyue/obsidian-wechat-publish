@@ -1173,3 +1173,24 @@
     justify-content: flex-start;
   }
 }
+
+.wechat-mp-publisher-publish-modal .wechat-mp-publisher-publish-progress {
+  font-size: var(--font-ui-medium);
+  color: var(--text-muted);
+  padding: 16px 0;
+  line-height: 1.6;
+}
+
+.wechat-mp-publisher-publish-modal .wechat-mp-publisher-publish-result {
+  font-size: var(--font-ui-medium);
+  padding: 16px 0;
+  line-height: 1.6;
+}
+
+.wechat-mp-publisher-publish-modal .wechat-mp-publisher-publish-failure {
+  color: var(--text-error);
+}
+
+.wechat-mp-publisher-publish-modal .wechat-mp-publisher-publish-buttons {
+  margin-top: 12px;
+}
