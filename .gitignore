@@ -1,0 +1,5 @@
+node_modules/
+dist/
+src/_bundle.ts
+*.zip
+.DS_Store

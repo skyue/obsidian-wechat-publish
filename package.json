@@ -1,0 +1,32 @@
+{
+  "name": "wechat-mp-publisher-dev",
+  "version": "1.0.0",
+  "description": "Obsidian WeChat MP Publisher — Write in Obsidian, publish to WeChat Official Account",
+  "main": "main.js",
+  "scripts": {
+    "build": "node scripts/build.cjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "obsidian",
+    "wechat",
+    "publisher"
+  ],
+  "author": "SKYue",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "esbuild": "^0.25.0",
+    "obsidian": "^1.5.0",
+    "typescript": "^5.6.0"
+  },
+  "dependencies": {
+    "cheerio": "1.0.0",
+    "highlight.js": "11.11.1",
+    "juice": "^11.1.1",
+    "katex": "^0.16.42",
+    "marked": "^15.0.12",
+    "mathjax-full": "^3.2.2",
+    "mermaid": "^11.13.0"
+  }
+}
