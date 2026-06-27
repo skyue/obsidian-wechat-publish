@@ -63,16 +63,16 @@ const AccountConfigModal = class extends import_obsidian.Modal {
       });
     });
     if (this.showPasteImport) {
-      const importEl = contentEl.createDiv({ cls: "weixin-mp-paste-import" });
+      const importEl = contentEl.createDiv({ cls: "weixin-mp-publisher-paste-import" });
       importEl.createEl("p", {
-        cls: "weixin-mp-paste-import__hint",
+        cls: "weixin-mp-publisher-paste-import__hint",
         text: "将微信公众号后台「基础信息」页的内容全选复制后粘贴到下方，自动识别账号名、AppID 和 AppSecret："
       });
       const textarea = importEl.createEl("textarea", {
-        cls: "weixin-mp-paste-import__textarea",
+        cls: "weixin-mp-publisher-paste-import__textarea",
         attr: { placeholder: "公众号\n你的公众号名称\nAppID\nwx...\nAppSecret\n..." }
       });
-      const resultEl = importEl.createEl("div", { cls: "weixin-mp-paste-import__result" });
+      const resultEl = importEl.createEl("div", { cls: "weixin-mp-publisher-paste-import__result" });
       new import_obsidian.Setting(importEl).addButton((button) => {
         button.setButtonText("识别并新增账号");
         button.setCta();
@@ -89,7 +89,7 @@ const AccountConfigModal = class extends import_obsidian.Modal {
           const isValidSecret = appSecret && /^[a-zA-Z0-9]+$/.test(appSecret);
           if (!name || !isValidAppId || !isValidSecret) {
             resultEl.textContent = "❌ 未能识别格式，请确认已复制微信公众号平台「基础信息」页的完整内容（包含「公众号」「AppID」「AppSecret」字样）。";
-            resultEl.className = "weixin-mp-paste-import__result weixin-mp-paste-import__result--error";
+            resultEl.className = "weixin-mp-publisher-paste-import__result weixin-mp-publisher-paste-import__result--error";
             return;
           }
           const newAccount = createEmptyAccount();
@@ -116,14 +116,14 @@ const AccountConfigModal = class extends import_obsidian.Modal {
       if (this.selectedIndex >= accounts.length) {
         this.selectedIndex = accounts.length - 1;
       }
-      const tabRowEl = contentEl.createDiv({ cls: "weixin-mp-account-tabs" });
+      const tabRowEl = contentEl.createDiv({ cls: "weixin-mp-publisher-account-tabs" });
       accounts.forEach((account2, idx) => {
         const isSelected = idx === this.selectedIndex;
         const tabEl = tabRowEl.createDiv({
-          cls: "weixin-mp-account-tab" + (isSelected ? " weixin-mp-account-tab--selected" : "")
+          cls: "weixin-mp-publisher-account-tab" + (isSelected ? " weixin-mp-publisher-account-tab--selected" : "")
         });
         tabEl.createEl("span", {
-          cls: "weixin-mp-account-tab__name",
+          cls: "weixin-mp-publisher-account-tab__name",
           text: account2.name || "未命名账号"
         });
         tabEl.addEventListener("click", () => {
@@ -132,11 +132,11 @@ const AccountConfigModal = class extends import_obsidian.Modal {
         });
       });
       const account = accounts[this.selectedIndex];
-      const cardEl = contentEl.createDiv({ cls: "weixin-mp-account-card" });
+      const cardEl = contentEl.createDiv({ cls: "weixin-mp-publisher-account-card" });
       new import_obsidian.Setting(cardEl).setName("账号名称").setDesc("例如：主号 / 备用号").addText((text6) => {
         text6.setValue(account.name).onChange((value2) => {
           account.name = value2.trim() || "未命名账号";
-          const tabNameEl = tabRowEl.querySelectorAll(".weixin-mp-account-tab__name")[this.selectedIndex];
+          const tabNameEl = tabRowEl.querySelectorAll(".weixin-mp-publisher-account-tab__name")[this.selectedIndex];
           if (tabNameEl) tabNameEl.textContent = account.name;
         });
       }).addExtraButton((button) => {

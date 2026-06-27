@@ -1,7 +1,7 @@
 const import_obsidian4 = require("obsidian");
-const PREVIEW_VIEW_TYPE = "weixin-mp-preview";
+const PREVIEW_VIEW_TYPE = "weixin-mp-publisher-preview";
 const SVG_NS = "http://www.w3.org/2000/svg";
-const WeiXinMpPreviewView = class extends import_obsidian4.ItemView {
+const WeiXinMpPublisherPreviewView = class extends import_obsidian4.ItemView {
   constructor(leaf, plugin23) {
     super(leaf);
     this.plugin = plugin23;
@@ -59,14 +59,14 @@ const WeiXinMpPreviewView = class extends import_obsidian4.ItemView {
     return PREVIEW_VIEW_TYPE;
   }
   getDisplayText() {
-    return "WeiXin MP";
+    return "WeiXin MP Publisher";
   }
   getIcon() {
     return "newspaper";
   }
   async onOpen() {
     this.containerEl.empty();
-    this.containerEl.addClass("weixin-mp-view");
+    this.containerEl.addClass("weixin-mp-publisher-view");
     this.renderToolbarHiddenHandle();
     this.renderToolbar();
     this.renderDrawer();
@@ -524,7 +524,7 @@ const WeiXinMpPreviewView = class extends import_obsidian4.ItemView {
     this.moreMenuEl.createDiv({ cls: "wp-menu-sep" });
     this.addMoreMenuItem("help", "用户指南", null, () => {
       this.closeMoreMenu();
-      this.plugin.openExternalUrl("https://blog.discoverlabs.ac.cn/downloads/weixin-mp/");
+      this.plugin.openExternalUrl("https://blog.discoverlabs.ac.cn/downloads/weixin-mp-publisher/");
     });
   }
   addMoreMenuItem(icon2, text6, meta3, onClick, metaVariant = null) {
@@ -564,12 +564,12 @@ const WeiXinMpPreviewView = class extends import_obsidian4.ItemView {
       this.toolbarEl?.hide();
       this.drawerEl?.hide();
       this.toolbarHiddenHandleEl?.show();
-      this.containerEl.addClass("weixin-mp-view--toolbar-hidden");
+      this.containerEl.addClass("weixin-mp-publisher-view--toolbar-hidden");
     } else {
       this.toolbarEl?.show();
       this.drawerEl?.show();
       this.toolbarHiddenHandleEl?.hide();
-      this.containerEl.removeClass("weixin-mp-view--toolbar-hidden");
+      this.containerEl.removeClass("weixin-mp-publisher-view--toolbar-hidden");
     }
   }
   // ============================================================

@@ -1,9 +1,9 @@
 /* ============================================================
-   WeiXin MP — Preview View
+   WeiXin MP Publisher — Preview View
    Uses Obsidian native CSS vars; light/dark handled by host.
 ============================================================ */
 
-.weixin-mp-view {
+.weixin-mp-publisher-view {
   --wp-accent: var(--interactive-accent);
   --wp-accent-hover: var(--interactive-accent-hover, var(--interactive-accent));
   --wp-shadow-s: 0 1px 2px rgba(0, 0, 0, 0.04);
@@ -19,7 +19,7 @@
   flex-direction: column;
 }
 
-.theme-dark .weixin-mp-view {
+.theme-dark .weixin-mp-publisher-view {
   --wp-shadow-s: 0 1px 2px rgba(0, 0, 0, 0.3);
   --wp-shadow-m: 0 4px 14px rgba(0, 0, 0, 0.35);
 }
@@ -735,7 +735,7 @@
   color: var(--text-normal);
 }
 
-.weixin-mp-view--toolbar-hidden .wp-toolbar-hidden-handle {
+.weixin-mp-publisher-view--toolbar-hidden .wp-toolbar-hidden-handle {
   display: inline-block;
 }
 
@@ -784,12 +784,12 @@
    (Some settings / modal code still references old classes.)
 ============================================================ */
 
-.weixin-mp-settings-note {
+.weixin-mp-publisher-settings-note {
   margin-bottom: 20px;
   color: var(--text-muted);
 }
 
-.weixin-mp-account-card {
+.weixin-mp-publisher-account-card {
   margin-bottom: 16px;
   padding: 12px;
   border: 1px solid var(--background-modifier-border);
@@ -797,7 +797,7 @@
   background: var(--background-secondary);
 }
 
-.weixin-mp-purchase-card {
+.weixin-mp-publisher-purchase-card {
   margin-top: 20px;
   padding: 16px;
   border: 1px solid rgba(15, 76, 129, 0.14);
@@ -805,20 +805,20 @@
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(244, 248, 252, 0.92));
 }
 
-.weixin-mp-about__intro {
+.weixin-mp-publisher-about__intro {
   margin: 0 0 8px;
   font-size: 0.96em;
   line-height: 1.6;
   color: var(--text-normal);
 }
 
-.weixin-mp-about__version {
+.weixin-mp-publisher-about__version {
   margin-bottom: 16px;
   font-size: 0.86em;
   color: var(--text-muted);
 }
 
-.weixin-mp-about__card {
+.weixin-mp-publisher-about__card {
   margin: 12px 0 18px;
   padding: 16px;
   border: 1px solid rgba(15, 76, 129, 0.14);
@@ -827,13 +827,13 @@
   text-align: center;
 }
 
-.weixin-mp-about__card-title {
+.weixin-mp-publisher-about__card-title {
   margin-bottom: 10px;
   font-weight: 600;
   color: var(--text-normal);
 }
 
-.weixin-mp-about__profile {
+.weixin-mp-publisher-about__profile {
   display: block;
   margin: 0 auto 10px;
   max-width: 260px;
@@ -843,13 +843,13 @@
   background: var(--background-primary);
 }
 
-.weixin-mp-about__feedback {
+.weixin-mp-publisher-about__feedback {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-.weixin-mp-about__qr {
+.weixin-mp-publisher-about__qr {
   display: block;
   margin: 0 auto 10px;
   width: 180px;
@@ -859,14 +859,14 @@
   background: var(--background-primary);
 }
 
-.weixin-mp-about__card-hint {
+.weixin-mp-publisher-about__card-hint {
   margin-top: 4px;
   font-size: 0.88em;
   color: var(--text-muted);
   line-height: 1.6;
 }
 
-.weixin-mp-about__terms {
+.weixin-mp-publisher-about__terms {
   margin: 12px 0 16px;
   padding: 14px 16px;
   border: 1px solid var(--background-modifier-border);
@@ -874,27 +874,27 @@
   background: var(--background-secondary);
 }
 
-.weixin-mp-about__terms-title {
+.weixin-mp-publisher-about__terms-title {
   margin-bottom: 6px;
   font-weight: 600;
   color: var(--text-normal);
 }
 
-.weixin-mp-about__terms-list {
+.weixin-mp-publisher-about__terms-list {
   margin: 0;
   padding-left: 20px;
   color: var(--text-normal);
   line-height: 1.7;
 }
 
-.weixin-mp-about__links {
+.weixin-mp-publisher-about__links {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
   margin-top: 4px;
 }
 
-.weixin-mp-about__link {
+.weixin-mp-publisher-about__link {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -908,18 +908,18 @@
   cursor: pointer;
 }
 
-.weixin-mp-about__link:hover {
+.weixin-mp-publisher-about__link:hover {
   border-color: var(--interactive-accent);
   color: var(--interactive-accent);
 }
 
-.weixin-mp-purchase-card__line {
+.weixin-mp-publisher-purchase-card__line {
   margin-bottom: 6px;
   color: var(--text-normal);
   line-height: 1.6;
 }
 
-.weixin-mp-purchase-card__qr {
+.weixin-mp-publisher-purchase-card__qr {
   display: block;
   margin: 12px auto 8px;
   width: 180px;
@@ -928,34 +928,34 @@
   object-fit: cover;
 }
 
-.weixin-mp-purchase-card__line--hint {
+.weixin-mp-publisher-purchase-card__line--hint {
   margin-top: 6px;
   font-size: 0.88em;
   color: var(--text-muted);
 }
 
-.weixin-mp-activate-result {
+.weixin-mp-publisher-activate-result {
   margin: 8px 0 4px;
   min-height: 0;
 }
 
-.weixin-mp-activate-result--success {
+.weixin-mp-publisher-activate-result--success {
   color: var(--color-green);
   font-size: 0.92em;
   margin-bottom: 4px;
 }
 
-.weixin-mp-activate-result--hint {
+.weixin-mp-publisher-activate-result--hint {
   color: var(--text-muted);
   font-size: 0.88em;
 }
 
-.weixin-mp-activate-result--error {
+.weixin-mp-publisher-activate-result--error {
   color: var(--color-red);
   font-size: 0.92em;
 }
 
-.weixin-mp-account-badge {
+.weixin-mp-publisher-account-badge {
   display: inline-block;
   margin-left: 8px;
   padding: 1px 7px;
@@ -965,24 +965,24 @@
   vertical-align: middle;
 }
 
-.weixin-mp-account-badge--active {
+.weixin-mp-publisher-account-badge--active {
   background: rgba(7, 193, 96, 0.15);
   color: #07c160;
 }
 
-.weixin-mp-account-badge--inactive {
+.weixin-mp-publisher-account-badge--inactive {
   background: rgba(0, 0, 0, 0.06);
   color: var(--text-muted);
 }
 
-.weixin-mp-activate-account-list {
+.weixin-mp-publisher-activate-account-list {
   display: flex;
   flex-direction: column;
   gap: 6px;
   margin: 8px 0 16px;
 }
 
-.weixin-mp-activate-account-item {
+.weixin-mp-publisher-activate-account-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -993,34 +993,34 @@
   transition: border-color 0.15s, background 0.15s;
 }
 
-.weixin-mp-activate-account-item:hover {
+.weixin-mp-publisher-activate-account-item:hover {
   background: var(--background-modifier-hover);
 }
 
-.weixin-mp-activate-account-item--selected {
+.weixin-mp-publisher-activate-account-item--selected {
   border-color: #07c160;
   background: rgba(7, 193, 96, 0.06);
 }
 
-.weixin-mp-activate-account-item__name {
+.weixin-mp-publisher-activate-account-item__name {
   font-weight: 500;
   font-size: 0.95em;
 }
 
-.weixin-mp-activate-account-item__appid {
+.weixin-mp-publisher-activate-account-item__appid {
   font-size: 0.82em;
   color: var(--text-muted);
   margin-top: 2px;
 }
 
-.weixin-mp-account-tabs {
+.weixin-mp-publisher-account-tabs {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   margin: 12px 0 8px;
 }
 
-.weixin-mp-account-tab {
+.weixin-mp-publisher-account-tab {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -1033,48 +1033,48 @@
   white-space: nowrap;
 }
 
-.weixin-mp-account-tab:hover {
+.weixin-mp-publisher-account-tab:hover {
   background: var(--background-modifier-hover);
 }
 
-.weixin-mp-account-tab--selected {
+.weixin-mp-publisher-account-tab--selected {
   border-color: #07c160;
   background: rgba(7, 193, 96, 0.06);
   font-weight: 500;
 }
 
-.weixin-mp-account-tab__name {
+.weixin-mp-publisher-account-tab__name {
   max-width: 120px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.weixin-mp-license-status--active {
+.weixin-mp-publisher-license-status--active {
   color: #07c160 !important;
 }
 
-.weixin-mp-license-status--warn {
+.weixin-mp-publisher-license-status--warn {
   color: var(--color-orange, #e6a23c) !important;
 }
 
-.weixin-mp-license-status--none {
+.weixin-mp-publisher-license-status--none {
   color: var(--text-muted) !important;
 }
 
-.weixin-mp-paste-import {
+.weixin-mp-publisher-paste-import {
   margin: 8px 0;
   padding: 14px 16px;
   border: 1px dashed var(--background-modifier-border);
   border-radius: 8px;
 }
 
-.weixin-mp-paste-import__hint {
+.weixin-mp-publisher-paste-import__hint {
   margin: 0 0 8px;
   font-size: 0.88em;
   color: var(--text-muted);
 }
 
-.weixin-mp-paste-import__textarea {
+.weixin-mp-publisher-paste-import__textarea {
   width: 100%;
   min-height: 72px;
   resize: vertical;
@@ -1088,22 +1088,22 @@
   margin-bottom: 6px;
 }
 
-.weixin-mp-paste-import__result {
+.weixin-mp-publisher-paste-import__result {
   font-size: 0.88em;
   margin-bottom: 6px;
   min-height: 1em;
 }
 
-.weixin-mp-paste-import__result--error {
+.weixin-mp-publisher-paste-import__result--error {
   color: var(--color-red);
 }
 
-.weixin-mp-style-modal .modal-content {
+.weixin-mp-publisher-style-modal .modal-content {
   max-height: 78vh;
   overflow-y: auto;
 }
 
-.weixin-mp-style-section {
+.weixin-mp-publisher-style-section {
   margin-bottom: 16px;
   padding: 14px;
   border: 1px solid rgba(15, 76, 129, 0.12);
@@ -1111,40 +1111,40 @@
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(246, 248, 251, 0.9));
 }
 
-.weixin-mp-style-section-title {
+.weixin-mp-publisher-style-section-title {
   margin: 0 0 4px;
   color: var(--text-normal);
   font-size: 15px;
 }
 
-.weixin-mp-style-section-desc {
+.weixin-mp-publisher-style-section-desc {
   margin: 0 0 12px;
   color: var(--text-muted);
   font-size: 12px;
   line-height: 1.6;
 }
 
-.weixin-mp-slider-setting .setting-item-control {
+.weixin-mp-publisher-slider-setting .setting-item-control {
   align-items: center;
   gap: 10px;
 }
 
-.weixin-mp-slider-setting input[type="range"] {
+.weixin-mp-publisher-slider-setting input[type="range"] {
   min-width: 180px;
 }
 
-.weixin-mp-slider-setting input[type="number"] {
+.weixin-mp-publisher-slider-setting input[type="number"] {
   width: 84px;
   padding: 6px 8px;
   border: 1px solid var(--background-modifier-border);
   border-radius: 10px;
 }
 
-.weixin-mp-style-actions {
+.weixin-mp-publisher-style-actions {
   margin-top: 12px;
 }
 
-.weixin-mp-style-empty {
+.weixin-mp-publisher-style-empty {
   padding: 12px;
   border: 1px dashed var(--background-modifier-border);
   border-radius: 12px;
@@ -1168,35 +1168,35 @@
 }
 
 @media (max-width: 900px) {
-  .weixin-mp-slider-setting .setting-item-control {
+  .weixin-mp-publisher-slider-setting .setting-item-control {
     flex-wrap: wrap;
     justify-content: flex-start;
   }
 }
 
-.weixin-mp-publish-modal .weixin-mp-publish-progress {
+.weixin-mp-publisher-publish-modal .weixin-mp-publisher-publish-progress {
   font-size: var(--font-ui-medium);
   color: var(--text-muted);
   padding: 16px 0;
   line-height: 1.6;
 }
 
-.weixin-mp-publish-modal .weixin-mp-publish-result {
+.weixin-mp-publisher-publish-modal .weixin-mp-publisher-publish-result {
   font-size: var(--font-ui-medium);
   padding: 16px 0;
   line-height: 1.6;
 }
 
-.weixin-mp-publish-modal .weixin-mp-publish-failure {
+.weixin-mp-publisher-publish-modal .weixin-mp-publisher-publish-failure {
   color: var(--text-error);
 }
 
-.weixin-mp-publish-modal .weixin-mp-publish-buttons {
+.weixin-mp-publisher-publish-modal .weixin-mp-publisher-publish-buttons {
   margin-top: 12px;
 }
 
 /* Hidden render host — positioned off-screen for MathJax/Mermaid */
-.weixin-mp-hidden-host {
+.weixin-mp-publisher-hidden-host {
   position: fixed;
   left: -99999px;
   top: -99999px;

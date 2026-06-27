@@ -84,8 +84,8 @@ function addNumberField(options3) {
   let sliderRef = null;
   let inputRef = null;
   const setting = new import_obsidian7.Setting(options3.container).setName(options3.name).setDesc(options3.desc ?? "");
-  setting.settingEl.addClass("weixin-mp-slider-setting");
-  setting.controlEl.addClass("weixin-mp-slider-control");
+  setting.settingEl.addClass("weixin-mp-publisher-slider-setting");
+  setting.controlEl.addClass("weixin-mp-publisher-slider-control");
   setting.addSlider((slider) => {
     sliderRef = slider;
     slider.setLimits(options3.min, options3.max, options3.step);
@@ -127,14 +127,14 @@ const StyleConfigModal = class extends import_obsidian7.Modal {
     const { titleEl, contentEl } = this;
     titleEl.setText("高级微调");
     contentEl.empty();
-    this.modalEl.addClass("weixin-mp-style-modal");
+    this.modalEl.addClass("weixin-mp-publisher-style-modal");
     this.buildSavedPresetsSection(contentEl);
     this.buildTypographySection(contentEl);
     this.buildHeadingSection(contentEl);
     this.buildQuoteAndMediaSection(contentEl);
     this.buildCodeSection(contentEl);
     this.buildTagSection(contentEl);
-    new import_obsidian7.Setting(contentEl).setClass("weixin-mp-style-actions").addButton((button) => {
+    new import_obsidian7.Setting(contentEl).setClass("weixin-mp-publisher-style-actions").addButton((button) => {
       button.setButtonText("恢复默认");
       button.onClick(async () => {
         this.plugin.settings.styleOverrides = {};
@@ -152,7 +152,7 @@ const StyleConfigModal = class extends import_obsidian7.Modal {
     });
   }
   onClose() {
-    this.modalEl.removeClass("weixin-mp-style-modal");
+    this.modalEl.removeClass("weixin-mp-publisher-style-modal");
     this.contentEl.empty();
   }
   buildSavedPresetsSection(container2) {
@@ -178,7 +178,7 @@ const StyleConfigModal = class extends import_obsidian7.Modal {
     });
     if (this.plugin.settings.savedStylePresets.length === 0) {
       section.createDiv({
-        cls: "weixin-mp-style-empty",
+        cls: "weixin-mp-publisher-style-empty",
         text: "还没有保存格式方案。先调好一套，再起个别名保存。"
       });
       return;
@@ -519,9 +519,9 @@ const StyleConfigModal = class extends import_obsidian7.Modal {
     );
   }
   createSection(container2, title2, desc) {
-    const section = container2.createDiv({ cls: "weixin-mp-style-section" });
-    section.createEl("h3", { text: title2, cls: "weixin-mp-style-section-title" });
-    section.createEl("p", { text: desc, cls: "weixin-mp-style-section-desc" });
+    const section = container2.createDiv({ cls: "weixin-mp-publisher-style-section" });
+    section.createEl("h3", { text: title2, cls: "weixin-mp-publisher-style-section-title" });
+    section.createEl("p", { text: desc, cls: "weixin-mp-publisher-style-section-desc" });
     return section;
   }
   addDropdownSetting(container2, name, value2, options3, onChange) {

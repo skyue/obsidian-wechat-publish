@@ -5,14 +5,14 @@ const PublishModal = class extends import_obsidian10.Modal {
     this.fileName = fileName;
   }
   onOpen() {
-    this.modalEl.addClass("weixin-mp-publish-modal");
+    this.modalEl.addClass("weixin-mp-publisher-publish-modal");
     this.titleEl.setText(`发布《${this.fileName}》`);
-    this.progressEl = this.contentEl.createDiv({ cls: "weixin-mp-publish-progress" });
+    this.progressEl = this.contentEl.createDiv({ cls: "weixin-mp-publisher-publish-progress" });
     this.progressEl.setText("正在准备……");
   }
   onClose() {
     this.contentEl.empty();
-    this.modalEl.removeClass("weixin-mp-publish-modal");
+    this.modalEl.removeClass("weixin-mp-publisher-publish-modal");
   }
   setProgress(message) {
     if (this.progressEl) {
@@ -22,8 +22,8 @@ const PublishModal = class extends import_obsidian10.Modal {
   showSuccess(message) {
     this.titleEl.setText("发布成功");
     this.contentEl.empty();
-    this.contentEl.createDiv({ cls: "weixin-mp-publish-result", text: message });
-    const buttonContainer = this.contentEl.createDiv({ cls: "weixin-mp-publish-buttons" });
+    this.contentEl.createDiv({ cls: "weixin-mp-publisher-publish-result", text: message });
+    const buttonContainer = this.contentEl.createDiv({ cls: "weixin-mp-publisher-publish-buttons" });
     new import_obsidian10.Setting(buttonContainer).addButton((btn) => {
       btn.setButtonText("打开公众号后台").setCta().onClick(() => {
         this.plugin.openWechatPlatform();
@@ -36,14 +36,14 @@ const PublishModal = class extends import_obsidian10.Modal {
   showFailure(message) {
     this.titleEl.setText("发布失败");
     this.contentEl.empty();
-    this.contentEl.createDiv({ cls: "weixin-mp-publish-result weixin-mp-publish-failure", text: message });
-    const buttonContainer = this.contentEl.createDiv({ cls: "weixin-mp-publish-buttons" });
+    this.contentEl.createDiv({ cls: "weixin-mp-publisher-publish-result weixin-mp-publisher-publish-failure", text: message });
+    const buttonContainer = this.contentEl.createDiv({ cls: "weixin-mp-publisher-publish-buttons" });
     new import_obsidian10.Setting(buttonContainer).addButton((btn) => {
       btn.setButtonText("关闭").setCta().onClick(() => this.close());
     });
   }
 };
-const WeiXinMpPlugin = class extends import_obsidian10.Plugin {
+const WeiXinMpPublisherPlugin = class extends import_obsidian10.Plugin {
   settings = DEFAULT_SETTINGS;
   themes = BUILTIN_THEMES;
   styleProfiles = BUILTIN_STYLE_PROFILES;
@@ -66,7 +66,7 @@ const WeiXinMpPlugin = class extends import_obsidian10.Plugin {
     this.captureMarkdownContext();
     this.registerView(
       PREVIEW_VIEW_TYPE,
-      (leaf) => new WeiXinMpPreviewView(leaf, this)
+      (leaf) => new WeiXinMpPublisherPreviewView(leaf, this)
     );
     this.addRibbonIcon("newspaper", "打开微信公众号预览", () => {
       void this.activatePreview();
@@ -106,7 +106,7 @@ const WeiXinMpPlugin = class extends import_obsidian10.Plugin {
         return true;
       }
     });
-    this.addSettingTab(new WeiXinMpSettingTab(this.app, this));
+    this.addSettingTab(new WeiXinMpPublisherSettingTab(this.app, this));
     this.registerEvent(
       this.app.workspace.on("file-open", (file) => {
         if (file instanceof import_obsidian10.TFile && file.extension === "md") {

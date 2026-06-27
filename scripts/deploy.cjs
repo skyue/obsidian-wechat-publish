@@ -2,7 +2,7 @@
  * Deploy built files to local Obsidian test vault.
  * Usage: node scripts/deploy.cjs [vault-plugins-dir]
  *
- * Default target: ~/Downloads/obsidian_test/.obsidian/plugins/weixin-mp
+ * Default target: ~/Downloads/obsidian_test/.obsidian/plugins/weixin-mp-publisher
  */
 const fs = require('fs');
 const path = require('path');
@@ -10,7 +10,7 @@ const path = require('path');
 const ROOT = path.join(__dirname, '..');
 const defaultTarget = path.join(
   require('os').homedir(),
-  'Downloads/obsidian_test/.obsidian/plugins/weixin-mp'
+  'Downloads/obsidian_test/.obsidian/plugins/weixin-mp-publisher'
 );
 
 const target = process.argv[2] || defaultTarget;

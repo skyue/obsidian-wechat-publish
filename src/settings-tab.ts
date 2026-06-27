@@ -32,7 +32,7 @@ function addSecretTextField2(setting, value2, onChange) {
     });
   });
 }
-const WeiXinMpSettingTab = class extends import_obsidian5.PluginSettingTab {
+const WeiXinMpPublisherSettingTab = class extends import_obsidian5.PluginSettingTab {
   constructor(app, plugin23) {
     super(app, plugin23);
     this.plugin = plugin23;
@@ -40,7 +40,7 @@ const WeiXinMpSettingTab = class extends import_obsidian5.PluginSettingTab {
   display() {
     const { containerEl } = this;
     containerEl.empty();
-    containerEl.createEl("h2", { text: "WeiXin MP 设置" });
+    containerEl.createEl("h2", { text: "WeiXin MP Publisher 设置" });
     new import_obsidian5.Setting(containerEl).setName("默认主题").setDesc("用于预览和复制 HTML 的默认主题。").addDropdown((dropdown) => {
       for (const theme of this.plugin.getAvailableThemes()) {
         dropdown.addOption(theme.id, `${theme.label} \xB7 ${theme.description}`);
@@ -66,13 +66,13 @@ const WeiXinMpSettingTab = class extends import_obsidian5.PluginSettingTab {
     containerEl.createEl("h3", { text: "公众号账号" });
     if (this.plugin.settings.accounts.length === 0) {
       containerEl.createDiv({
-        cls: "weixin-mp-settings-note",
+        cls: "weixin-mp-publisher-settings-note",
         text: "还没有配置公众号账号。配置后即可用于发布草稿。"
       });
     }
     this.plugin.settings.accounts.forEach((account) => {
       const cardEl = containerEl.createDiv({
-        cls: "weixin-mp-account-card"
+        cls: "weixin-mp-publisher-account-card"
       });
       new import_obsidian5.Setting(cardEl).setName("账号名称").setDesc("例如：主号 / 备用号").addText((text6) => {
         text6.setPlaceholder("我的公众号").setValue(account.name).onChange((value2) => {
