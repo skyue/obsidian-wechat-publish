@@ -90,6 +90,7 @@ const imports = [
   '',
   "import * as Obsidian from 'obsidian';",
   "import juice from 'juice';",
+  "import markdownit from 'markdown-it';",
   "import hljs from 'highlight.js';",
   "import bash from 'highlight.js/lib/languages/bash';",
   "import css from 'highlight.js/lib/languages/css';",
