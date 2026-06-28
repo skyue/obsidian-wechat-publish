@@ -7,3 +7,5 @@
 WeiXin MP Publisher 是一个 Obsidian 插件，让你在熟悉的写作环境里完成公众号排版，无需离开 Obsidian 就能发布。
 
 原始项目：https://github.com/RanceLee233/wechat-publisher
+
+[Obsidian公众号插件使用方法](https://www.skyue.com/weixin-mp-publisher.html)
