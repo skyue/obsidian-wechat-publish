@@ -1,16 +1,17 @@
-import { PluginSettingTab, Notice, Setting } from 'obsidian';
+import { App, PluginSettingTab, Notice, Setting, TextComponent, ExtraButtonComponent } from 'obsidian';
+import type WeiXinMpPublisherPlugin from './main.ts';
 import { createEmptyAccount } from './types.ts';
-function runAsync3(action) {
+function runAsync3(action: () => Promise<void>) {
   void action().catch((error3) => {
     console.error(error3);
     new Notice(`操作失败：${error3 instanceof Error ? error3.message : "未知错误"}`, 1e4);
   });
 }
-function addSecretTextField2(setting, value2, onChange) {
+function addSecretTextField2(setting: Setting, value2: string, onChange: (value: string) => void) {
   let visible = false;
-  let textComponent = null;
-  const updateVisibility = (button) => {
-    if (textComponent) {
+  let textComponent: TextComponent | null = null;
+  const updateVisibility = (button?: ExtraButtonComponent) => {
+    if (textComponent !== null) {
       textComponent.inputEl.type = visible ? "text" : "password";
     }
     button?.setIcon(visible ? "eye-off" : "eye");
@@ -19,9 +20,7 @@ function addSecretTextField2(setting, value2, onChange) {
   setting.addText((text6) => {
     textComponent = text6;
     text6.setPlaceholder("请输入 AppSecret").setValue(value2).onChange((nextValue) => {
-      runAsync3(async () => {
-        await onChange(nextValue.trim());
-      });
+      onChange(nextValue.trim());
     });
     updateVisibility();
   });
@@ -34,7 +33,8 @@ function addSecretTextField2(setting, value2, onChange) {
   });
 }
 export const WeiXinMpPublisherSettingTab = class extends PluginSettingTab {
-  constructor(app, plugin23) {
+  plugin: WeiXinMpPublisherPlugin;
+  constructor(app: App, plugin23: WeiXinMpPublisherPlugin) {
     super(app, plugin23);
     this.plugin = plugin23;
   }
@@ -108,14 +108,14 @@ export const WeiXinMpPublisherSettingTab = class extends PluginSettingTab {
         });
       });
       const appSecretSetting = new Setting(cardEl).setName("AppSecret").setDesc("微信公众号的 AppSecret，仅保存在本地。");
-      addSecretTextField2(appSecretSetting, account.appSecret, async (value2) => {
+      addSecretTextField2(appSecretSetting, account.appSecret, (value2) => {
         account.appSecret = value2;
-        await this.plugin.saveSettings();
+        void this.plugin.saveSettings();
       });
       const apiKeySetting = new Setting(cardEl).setName("API Key").setDesc("使用中转服务 API Key，享受稳定IP地址和发布服务，中转服务加密保存 AppID，绝不保存 AppSecret。");
-      addSecretTextField2(apiKeySetting, account.apiKey ?? "", async (value2) => {
+      addSecretTextField2(apiKeySetting, account.apiKey ?? "", (value2) => {
         account.apiKey = value2;
-        await this.plugin.saveSettings();
+        void this.plugin.saveSettings();
       });
       apiKeySetting.addButton((button) => {
         button.setButtonText("激活");

@@ -1,4 +1,4 @@
-import { TFile, MarkdownRenderer, Component } from 'obsidian';
+import { App, TFile, MarkdownRenderer, Component } from 'obsidian';
 const IMAGE_EXTENSIONS = /* @__PURE__ */ new Map([
   ["png", "image/png"],
   ["jpg", "image/jpeg"],
@@ -10,21 +10,21 @@ const IMAGE_EXTENSIONS = /* @__PURE__ */ new Map([
 ]);
 let mermaidPromise = null;
 let mathJaxContextPromise = null;
-const RESOLVED_ASSET_SOURCE_MAP = /* @__PURE__ */ new Map();
-const RESOLVED_ASSET_SOURCE_PREFIX_MAP = /* @__PURE__ */ new Map();
+const RESOLVED_ASSET_SOURCE_MAP: Map<string, string> = /* @__PURE__ */ new Map();
+const RESOLVED_ASSET_SOURCE_PREFIX_MAP: Map<string, string> = /* @__PURE__ */ new Map();
 const RESOLVED_ASSET_PREFIX_LENGTH = 256;
-function rememberResolvedAssetSource(resolvedUrl, originalPath) {
+function rememberResolvedAssetSource(resolvedUrl: string, originalPath: string): void {
   RESOLVED_ASSET_SOURCE_MAP.set(resolvedUrl, originalPath);
   RESOLVED_ASSET_SOURCE_PREFIX_MAP.set(
     resolvedUrl.slice(0, RESOLVED_ASSET_PREFIX_LENGTH),
     originalPath
   );
 }
-function getMimeTypeByPath(path4) {
+function getMimeTypeByPath(path4: string): string | null {
   const ext = path4.split(".").pop()?.toLowerCase() ?? "";
   return IMAGE_EXTENSIONS.get(ext) ?? null;
 }
-function stringToBase64(value2) {
+function stringToBase64(value2: string): string {
   const encoded = new TextEncoder().encode(value2);
   let binary2 = "";
   for (const byte of encoded) {
@@ -32,10 +32,10 @@ function stringToBase64(value2) {
   }
   return btoa(binary2);
 }
-function createSvgDataUrl(svg2) {
+function createSvgDataUrl(svg2: string): string {
   return `data:image/svg+xml;base64,${stringToBase64(svg2)}`;
 }
-function parseSvgLength(rawValue) {
+function parseSvgLength(rawValue: string): number | null {
   if (!rawValue) {
     return null;
   }
@@ -74,7 +74,7 @@ function parseSvgLength(rawValue) {
       return numeric;
   }
 }
-function normalizeSvgMarkup(svgMarkup) {
+function normalizeSvgMarkup(svgMarkup: string): { markup: string; width: number; height: number } {
   const fallbackWidth = 800;
   const fallbackHeight = 450;
   const parser27 = new DOMParser();
@@ -113,7 +113,7 @@ function normalizeSvgMarkup(svgMarkup) {
     height: height2
   };
 }
-async function loadImageFromUrl(url) {
+async function loadImageFromUrl(url: string): Promise<HTMLImageElement> {
   return await new Promise((resolve2, reject3) => {
     const image = new Image();
     image.decoding = "async";
@@ -122,7 +122,7 @@ async function loadImageFromUrl(url) {
     image.src = url;
   });
 }
-async function svgMarkupToPngDataUrl(svgMarkup) {
+async function svgMarkupToPngDataUrl(svgMarkup: string): Promise<string> {
   const normalized = normalizeSvgMarkup(svgMarkup);
   const image = await loadImageFromUrl(createSvgDataUrl(normalized.markup));
   const canvas = activeDocument.createElement("canvas");
@@ -136,33 +136,33 @@ async function svgMarkupToPngDataUrl(svgMarkup) {
   context.drawImage(image, 0, 0, normalized.width, normalized.height);
   return canvas.toDataURL("image/png");
 }
-function stripMarkdownLinkTarget(target) {
+function stripMarkdownLinkTarget(target: string): string {
   const trimmed = target.trim().replace(/^<|>$/g, "");
   const spaceIndex = trimmed.search(/\s(?=(?:[^"]*"[^"]*")*[^"]*$)/);
   return spaceIndex === -1 ? trimmed : trimmed.slice(0, spaceIndex);
 }
-function normalizeLookupKey(value2) {
+function normalizeLookupKey(value2: string): string {
   return value2.normalize("NFC").trim();
 }
-function normalizeMathExpression(expression) {
+function normalizeMathExpression(expression: string): string {
   return expression.trim().replace(/\\\\(?=[A-Za-z])/g, "\\").replace(/\\\\(?=[,;:!])/g, "\\");
 }
-function extractWikiEmbedParts(inner2) {
+function extractWikiEmbedParts(inner2: string): { rawPath: string; alt: string } {
   const [rawPath = "", ...restParts] = inner2.split("|");
-  const alt = restParts.map((part) => part.trim()).find((part) => part.length > 0 && !/^\d+(x\d+)?$/i.test(part)) ?? "";
+  const alt = restParts.map((part: string) => part.trim()).find((part: string) => part.length > 0 && !/^\d+(x\d+)?$/i.test(part)) ?? "";
   return {
     rawPath: rawPath.trim(),
     alt
   };
 }
-function escapeHtml2(text6) {
+function escapeHtml2(text6: string): string {
   return text6.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
 }
-function createHtmlImageTag(dataUrl, alt, className, originalSource) {
+function createHtmlImageTag(dataUrl: string, alt: string, className: string, originalSource?: string): string {
   const sourceAttr = originalSource ? ` data-wxp-source="${escapeHtml2(originalSource)}"` : "";
   return `<img class="${className}" src="${dataUrl}" alt="${escapeHtml2(alt)}"${sourceAttr} />`;
 }
-function dataUrlToBlobUrl(dataUrl) {
+function dataUrlToBlobUrl(dataUrl: string): string {
   const match2 = dataUrl.match(/^data:([^;]+);base64,(.+)$/s);
   if (!match2) {
     return dataUrl;
@@ -175,15 +175,15 @@ function dataUrlToBlobUrl(dataUrl) {
   }
   return URL.createObjectURL(new Blob([bytes], { type: mimeType }));
 }
-function buildBlockImageHtml(dataUrl, alt, className) {
+function buildBlockImageHtml(dataUrl: string, alt: string, className: string): string {
   return `
 ${createHtmlImageTag(dataUrlToBlobUrl(dataUrl), alt, className)}
 `;
 }
-function buildInlineImageHtml(dataUrl, alt, className) {
+function buildInlineImageHtml(dataUrl: string, alt: string, className: string): string {
   return createHtmlImageTag(dataUrlToBlobUrl(dataUrl), alt, className);
 }
-function buildResolvedImageReplacement(dataUrl, alt, originalSource) {
+function buildResolvedImageReplacement(dataUrl: string, alt: string, originalSource?: string): string {
   return `
 <figure class="wxp-resolved-figure">
 ${createHtmlImageTag(
@@ -195,13 +195,13 @@ ${createHtmlImageTag(
 </figure>
 `;
 }
-function buildMathFallbackHtml(expression, display) {
+function buildMathFallbackHtml(expression: string, display: boolean): string {
   const text6 = escapeHtml2(normalizeMathExpression(expression));
   return display ? `
 <section class="wxp-math-block">${text6}</section>
 ` : `<span class="wxp-math-inline">${text6}</span>`;
 }
-function findVaultFile(app, sourceFile, rawLink) {
+function findVaultFile(app: App, sourceFile: TFile, rawLink: string): TFile | null {
   const link3 = decodeURIComponent(rawLink).split("#")[0]?.trim();
   if (!link3 || /^(https?:|data:)/i.test(link3)) {
     return null;
@@ -227,7 +227,9 @@ function findVaultFile(app, sourceFile, rawLink) {
   const normalizedBasename = normalizeLookupKey(basename);
   return app.vault.getFiles().find((file) => normalizeLookupKey(file.name) === normalizedBasename) ?? null;
 }
-async function getMermaidRenderer() {
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/require-await */
+// Mermaid is loaded dynamically via globals — no TS types available.
+async function getMermaidRenderer(): Promise<{ render(id: string, code: string, host: HTMLElement): Promise<{ svg: string }> }> {
   if (!mermaidPromise) {
     mermaidPromise = Promise.resolve().then(() => (init_mermaid_core(), mermaid_core_exports)).then(async (module2) => {
       const mermaid2 = module2.default;
@@ -241,7 +243,10 @@ async function getMermaidRenderer() {
   }
   return mermaidPromise;
 }
-async function getMathJaxContext() {
+/* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/require-await */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return */
+// MathJax is loaded dynamically via import() — its modules have no TS types.
+async function getMathJaxContext(): Promise<{ convert: (expression: string, options: { display: boolean }) => unknown; adaptor: { outerHTML: (node: unknown) => string } }> {
   if (!mathJaxContextPromise) {
     mathJaxContextPromise = Promise.all([
       import('mathjax-full/js/mathjax.js'),
@@ -266,20 +271,21 @@ async function getMathJaxContext() {
       return {
         convert: document2.convert.bind(document2),
         adaptor: {
-          outerHTML: (node2) => adaptor.outerHTML(node2)
+          outerHTML: (node2: unknown) => adaptor.outerHTML(node2)
         }
       };
     });
   }
   return await mathJaxContextPromise;
 }
-function createHiddenRenderHost(className) {
+/* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return */
+function createHiddenRenderHost(className: string): HTMLElement {
   const host = activeDocument.createElement("div");
   host.className = `weixin-mp-publisher-hidden-host ${className}`;
   activeDocument.body.appendChild(host);
   return host;
 }
-function waitForMermaidSvg(container2, timeout2) {
+function waitForMermaidSvg(container2: HTMLElement, timeout2: number): Promise<SVGSVGElement> {
   return new Promise((resolve2) => {
     const existing = container2.querySelector("svg");
     if (existing instanceof SVGSVGElement) {
@@ -302,7 +308,7 @@ function waitForMermaidSvg(container2, timeout2) {
     }, timeout2);
   });
 }
-async function renderMermaidViaObsidian(app, sourceFile, code) {
+async function renderMermaidViaObsidian(app: App, sourceFile: TFile, code: string): Promise<string> {
   const container2 = activeDocument.createElement("div");
   container2.className = "wxp-mermaid-obsidian-render";
   activeDocument.body.appendChild(container2);
@@ -327,7 +333,7 @@ async function renderMermaidViaObsidian(app, sourceFile, code) {
     container2.remove();
   }
 }
-async function renderMermaidToDataUrl(app, sourceFile, code) {
+async function renderMermaidToDataUrl(app: App, sourceFile: TFile, code: string): Promise<string> {
   try {
     return await renderMermaidViaObsidian(app, sourceFile, code);
   } catch (obsidianError) {
@@ -344,13 +350,14 @@ async function renderMermaidToDataUrl(app, sourceFile, code) {
     host.remove();
   }
 }
-async function renderMathToDataUrl(expression, display) {
+async function renderMathToDataUrl(expression: string, display: boolean): Promise<string> {
   const { convert, adaptor } = await getMathJaxContext();
   const node2 = convert(normalizeMathExpression(expression), { display });
   const svgMarkup = adaptor.outerHTML(node2);
   return svgMarkupToPngDataUrl(svgMarkup);
 }
-async function resolveVaultImageToDataUrl(app, sourceFile, rawLink) {
+// eslint-disable-next-line @typescript-eslint/require-await
+async function resolveVaultImageToDataUrl(app: App, sourceFile: TFile, rawLink: string): Promise<string | null> {
   const link3 = decodeURIComponent(rawLink).trim().replace(/^<|>$/g, "");
   if (/^(https?:|data:)/i.test(link3)) {
     return link3;
@@ -367,18 +374,18 @@ async function resolveVaultImageToDataUrl(app, sourceFile, rawLink) {
   rememberResolvedAssetSource(resourcePath, file.path);
   return resourcePath;
 }
-export async function resolveAssetLinkForWechat(app, sourceFile, rawLink) {
+export async function resolveAssetLinkForWechat(app: App, sourceFile: TFile, rawLink: string): Promise<string | null> {
   return resolveVaultImageToDataUrl(app, sourceFile, rawLink);
 }
-export function lookupOriginalAssetSource(resolvedUrl) {
+export function lookupOriginalAssetSource(resolvedUrl: string): string | null {
   return RESOLVED_ASSET_SOURCE_MAP.get(resolvedUrl) ?? RESOLVED_ASSET_SOURCE_PREFIX_MAP.get(
     resolvedUrl.slice(0, RESOLVED_ASSET_PREFIX_LENGTH)
   ) ?? null;
 }
-export async function preprocessMarkdownForWechat(app, sourceFile, markdown2) {
+export async function preprocessMarkdownForWechat(app: App, sourceFile: TFile, markdown2: string): Promise<string> {
   let output2 = markdown2.replace(
     /(?<!!)\[\[([^[\]]+?)\]\]/g,
-    (_match, inner2) => {
+    (_match: string, inner2: string) => {
       const parts2 = inner2.split("|");
       const target3 = parts2[0]?.trim() ?? "";
       const alias = parts2.slice(1).filter((p2) => p2.trim()).at(-1)?.trim();
@@ -494,7 +501,7 @@ export async function preprocessMarkdownForWechat(app, sourceFile, markdown2) {
   );
   return output2;
 }
-async function replaceAsync(input, pattern, replacer) {
+async function replaceAsync(input: string, pattern: RegExp, replacer: (...matches: string[]) => string | Promise<string>): Promise<string> {
   const matches33 = Array.from(input.matchAll(pattern));
   if (matches33.length === 0) {
     return input;

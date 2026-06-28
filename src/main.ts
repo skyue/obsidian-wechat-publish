@@ -1,7 +1,7 @@
 import { Plugin, Modal, Setting, Notice, TFile, MarkdownView, requestUrl, normalizePath, DataAdapter } from 'obsidian';
 import { renderMarkdownToWechatHtml } from '../packages/render-core/src/index.ts';
 import { BUILTIN_THEMES, BUILTIN_STYLE_PROFILES, getThemeById, getStyleProfileById } from '../packages/theme-pack/src/index.ts';
-import { DEFAULT_SETTINGS, cloneDraftRecords, pruneDraftRecords, createStylePresetId, cloneStyleOverrides, normalizePublisherAccount, cloneCoverMediaRecords, pruneCoverMediaRecords, cloneArticleImageRecords, pruneArticleImageRecords } from './types.ts';
+import { DEFAULT_SETTINGS, cloneDraftRecords, pruneDraftRecords, createStylePresetId, cloneStyleOverrides, normalizePublisherAccount, cloneCoverMediaRecords, pruneCoverMediaRecords, cloneArticleImageRecords, pruneArticleImageRecords, PublisherAccount, PublisherSettings, DraftRecord, CoverMediaRecord, ArticleImageRecord, StylePreset, WechatApiJson } from './types.ts';
 import { AccountConfigModal } from './account-modal.ts';
 import { FormatModal } from './format-modal.ts';
 import { preprocessMarkdownForWechat } from './markdown-pipeline.ts';
@@ -10,8 +10,11 @@ import { WeiXinMpPublisherSettingTab } from './settings-tab.ts';
 import { StyleConfigModal } from './style-config-modal.ts';
 import { publishDraftToWechat, buildWechatRequest } from './wechat-api.ts';
 
-const PublishModal = class extends Modal {
-  constructor(plugin2, fileName) {
+class PublishModal extends Modal {
+  plugin: WeiXinMpPublisherPlugin;
+  fileName: string;
+  progressEl: HTMLElement | null = null;
+  constructor(plugin2: WeiXinMpPublisherPlugin, fileName: string) {
     super(plugin2.app);
     this.plugin = plugin2;
     this.fileName = fileName;
@@ -26,12 +29,12 @@ const PublishModal = class extends Modal {
     this.contentEl.empty();
     this.modalEl.removeClass("weixin-mp-publisher-publish-modal");
   }
-  setProgress(message) {
+  setProgress(message: string) {
     if (this.progressEl) {
       this.progressEl.setText(message);
     }
   }
-  showSuccess(message) {
+  showSuccess(message: string) {
     this.titleEl.setText("发布成功");
     this.contentEl.empty();
     this.contentEl.createDiv({ cls: "weixin-mp-publisher-publish-result", text: message });
@@ -45,7 +48,7 @@ const PublishModal = class extends Modal {
       btn.setButtonText("关闭").onClick(() => this.close());
     });
   }
-  showFailure(message) {
+  showFailure(message: string) {
     this.titleEl.setText("发布失败");
     this.contentEl.empty();
     this.contentEl.createDiv({ cls: "weixin-mp-publisher-publish-result weixin-mp-publisher-publish-failure", text: message });
@@ -55,14 +58,14 @@ const PublishModal = class extends Modal {
     });
   }
 };
-const WeiXinMpPublisherPlugin = class extends Plugin {
-  settings = DEFAULT_SETTINGS;
+class WeiXinMpPublisherPlugin extends Plugin {
+  settings: PublisherSettings = DEFAULT_SETTINGS;
   themes = BUILTIN_THEMES;
   styleProfiles = BUILTIN_STYLE_PROFILES;
-  lastMarkdownFilePath = null;
-  publishMetaDrafts = /* @__PURE__ */ new Map();
+  lastMarkdownFilePath: string | null = null;
+  publishMetaDrafts: Map<string, Record<string, string>> = /* @__PURE__ */ new Map();
   isPublishing = false;
-  publicIpStatus = {
+  publicIpStatus: { value: string | null; sourceLabel: string | null; checkedAt: number | null; error: string | null } = {
     value: null,
     sourceLabel: null,
     checkedAt: null,
@@ -144,14 +147,21 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
   onunload() {
   }
   async loadSettings() {
-    const loaded = await this.loadData();
+    const loaded = await this.loadData() as Record<string, unknown> | null;
+    const loadedEntitlements = loaded?.entitlements;
+    const loadedStyleOverrides = loaded?.styleOverrides;
+    const loadedAccounts = loaded?.accounts;
+    const loadedDraftRecords = loaded?.draftRecords;
+    const loadedCoverMediaRecords = loaded?.coverMediaRecords;
+    const loadedArticleImageRecords = loaded?.articleImageRecords;
+    const loadedStylePresets = loaded?.savedStylePresets;
     this.settings = {
       ...DEFAULT_SETTINGS,
-      ...loaded,
-      entitlements: loaded?.entitlements && typeof loaded.entitlements === "object" ? {
+      ...(loaded && typeof loaded === "object" ? loaded : {}),
+      entitlements: loadedEntitlements && typeof loadedEntitlements === "object" && loadedEntitlements !== null ? {
         enabled: {
           ...DEFAULT_SETTINGS.entitlements.enabled,
-          ...loaded.entitlements.enabled ?? {}
+          ...(loadedEntitlements as Record<string, unknown>).enabled != null ? (loadedEntitlements as Record<string, { enabled?: Record<string, boolean> }>).enabled ?? {} : {}
         }
       } : {
         enabled: {
@@ -160,33 +170,33 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
       },
       styleOverrides: {
         ...DEFAULT_SETTINGS.styleOverrides,
-        ...loaded?.styleOverrides ?? {}
+        ...(loadedStyleOverrides && typeof loadedStyleOverrides === "object" ? loadedStyleOverrides as Record<string, unknown> : {})
       },
-      accounts: Array.isArray(loaded?.accounts) ? loaded.accounts.map(
-        (account) => normalizePublisherAccount(account)
+      accounts: Array.isArray(loadedAccounts) ? loadedAccounts.map(
+        (account: Record<string, unknown>) => normalizePublisherAccount(account)
       ) : [],
-      draftRecords: cloneDraftRecords(loaded?.draftRecords),
-      coverMediaRecords: cloneCoverMediaRecords(loaded?.coverMediaRecords),
-      articleImageRecords: cloneArticleImageRecords(loaded?.articleImageRecords),
-      savedStylePresets: Array.isArray(loaded?.savedStylePresets) ? loaded.savedStylePresets.slice(0, 5).map((preset) => ({
+      draftRecords: cloneDraftRecords(loadedDraftRecords),
+      coverMediaRecords: cloneCoverMediaRecords(loadedCoverMediaRecords),
+      articleImageRecords: cloneArticleImageRecords(loadedArticleImageRecords),
+      savedStylePresets: Array.isArray(loadedStylePresets) ? (loadedStylePresets as Array<Record<string, unknown>>).slice(0, 5).map((preset): StylePreset => ({
         id: typeof preset.id === "string" && preset.id ? preset.id : createStylePresetId(),
         name: typeof preset.name === "string" && preset.name.trim() ? preset.name.trim() : "未命名样式",
         baseStyleId: typeof preset.baseStyleId === "string" && preset.baseStyleId ? getStyleProfileById(preset.baseStyleId).id : DEFAULT_SETTINGS.defaultStyleId,
-        styleOverrides: cloneStyleOverrides(preset.styleOverrides ?? {})
+        styleOverrides: cloneStyleOverrides((preset.styleOverrides as Record<string, unknown>) ?? {})
       })) : []
     };
   }
-  async saveSettings(options3) {
+  async saveSettings(options3?: { refreshPreview?: boolean }) {
     await this.saveData(this.settings);
     if (options3?.refreshPreview !== false) {
       await this.refreshPreviewLeaves();
     }
   }
-  async updateDefaultTheme(themeId) {
+  async updateDefaultTheme(themeId: string) {
     this.settings.defaultThemeId = this.resolveAccessibleThemeId(themeId);
     await this.saveSettings();
   }
-  async updateDefaultStyle(styleId) {
+  async updateDefaultStyle(styleId: string) {
     this.settings.defaultStyleId = getStyleProfileById(styleId).id;
     await this.saveSettings();
   }
@@ -210,7 +220,7 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
     }
     return null;
   }
-  async getRenderPayload(themeId) {
+  async getRenderPayload(themeId?: string) {
     const file = this.getActiveMarkdownFile();
     if (!file) {
       return null;
@@ -231,7 +241,7 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
       result
     };
   }
-  async copyActiveNoteHtml(themeId) {
+  async copyActiveNoteHtml(themeId?: string) {
     if (!await this.ensureFeatureAccess("copy-html", "复制 HTML")) {
       return;
     }
@@ -241,14 +251,15 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
       return;
     }
     try {
+      const html = payload.result.html as string;
       if (typeof ClipboardItem !== "undefined" && navigator.clipboard.write) {
         const item = new ClipboardItem({
-          "text/html": new Blob([payload.result.html], { type: "text/html" }),
-          "text/plain": new Blob([payload.result.html], { type: "text/plain" })
+          "text/html": new Blob([html], { type: "text/html" }),
+          "text/plain": new Blob([html], { type: "text/plain" })
         });
         await navigator.clipboard.write([item]);
       } else {
-        await navigator.clipboard.writeText(payload.result.html);
+        await navigator.clipboard.writeText(html);
       }
       new Notice(`已复制 ${payload.file.basename} 的微信 HTML。`);
     } catch (error3) {
@@ -256,13 +267,14 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
       new Notice("复制失败，当前环境不支持剪贴板写入。");
     }
   }
-  openExternalUrl(url, failureMessage = "打开链接失败，请稍后重试。") {
+  openExternalUrl(url: string, failureMessage = "打开链接失败，请稍后重试。") {
     try {
       const safeUrl = normalizeHttpUrl(url);
       if (!safeUrl) {
         new Notice("只支持打开 http(s) 外部链接。");
         return;
       }
+      /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
       const electronShell = window.require?.(
         "electron"
       );
@@ -270,6 +282,7 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
         void electronShell.shell.openExternal(safeUrl);
         return;
       }
+      /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
       window.open(safeUrl, "_blank", "noopener,noreferrer");
     } catch (error3) {
       console.error(error3);
@@ -300,10 +313,11 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
   hasPremiumThemeAccess() {
     return true;
   }
-  resolveAccessibleThemeId(themeId) {
+  resolveAccessibleThemeId(themeId: string): string {
     return getThemeById(themeId).id;
   }
-  async ensureFeatureAccess(_feature, _label, _options) {
+  // eslint-disable-next-line @typescript-eslint/require-await
+  async ensureFeatureAccess(_feature: string, _label: string, _options?: Record<string, unknown>): Promise<boolean> {
     return true;
   }
   getPublicIpStatusText() {
@@ -325,7 +339,7 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
     }
     return "用于微信 API 白名单。优先检测微信接口实际看到的出口 IP。";
   }
-  async detectPublicIp(account) {
+  async detectPublicIp(account?: PublisherAccount | null) {
     const targetAccount = account ?? this.getPreferredAccount();
     if (targetAccount?.apiKey) {
       try {
@@ -347,7 +361,8 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
           throw new Error("API Key无效");
         }
         if (response.status >= 400) {
-          const message = response.json?.errmsg ?? response.text ?? `HTTP ${response.status}`;
+          const errJson = response.json as WechatApiJson;
+          const message = errJson?.errmsg ?? response.text ?? `HTTP ${response.status}`;
           this.publicIpStatus = {
             value: null,
             sourceLabel: null,
@@ -356,7 +371,7 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
           };
           throw new Error(message);
         }
-        const data6 = response.json;
+        const data6 = response.json as WechatApiJson;
         const ip = typeof data6?.ip === "string" && data6.ip.trim() ? data6.ip.trim() : null;
         if (ip) {
           this.publicIpStatus = {
@@ -383,12 +398,13 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
       };
       return wechatIp;
     }
-    const providers = [
+    const providers: Array<{ url: string; label: string; parse: (response: { json: unknown; text: string }) => string | null }> = [
       {
         url: "https://api.ipify.org?format=json",
         label: "ipify",
         parse: (response) => {
-          const ip = response.json && typeof response.json === "object" && "ip" in response.json && typeof response.json.ip === "string" ? response.json.ip : response.text;
+          const json = response.json as Record<string, unknown> | null;
+          const ip = json && typeof json === "object" && "ip" in json && typeof json.ip === "string" ? json.ip : response.text;
           return extractIpv4(ip);
         }
       },
@@ -439,7 +455,7 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
     };
     throw new Error(this.publicIpStatus.error ?? "没有拿到公网 IP");
   }
-  async detectWechatApiIp(account) {
+  async detectWechatApiIp(account?: PublisherAccount | null): Promise<string | null> {
     const targetAccount = account ?? this.getPreferredAccount();
     if (!targetAccount?.appId || !targetAccount.appSecret) {
       return null;
@@ -451,7 +467,7 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
         requestLabel: "检测微信出口IP"
       });
       const response = await (0, requestUrl)(req);
-      const data6 = response.json;
+      const data6 = response.json as WechatApiJson;
       const message = data6?.errmsg ?? response.text ?? "";
       if (data6?.errcode === 40164 || /invalid ip/i.test(message)) {
         return extractIpv4(message);
@@ -461,7 +477,7 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
       return null;
     }
   }
-  async bindApiKey(account) {
+  async bindApiKey(account: PublisherAccount): Promise<{ error?: string; success?: boolean }> {
     const apiKey = account?.apiKey?.trim();
     const appId = account?.appId?.trim();
     if (!apiKey || !appId) {
@@ -492,13 +508,14 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
       if (response.status === 500) {
         return { error: "激活失败：绑定写入失败，请稍后重试" };
       }
-      const message = response.json?.errmsg ?? response.text ?? `HTTP ${response.status}`;
+      const errJson = response.json as WechatApiJson;
+      const message = errJson?.errmsg ?? response.text ?? `HTTP ${response.status}`;
       return { error: `激活失败：${message}` };
     } catch (error3) {
       return { error: `激活失败：${error3 instanceof Error ? error3.message : "网络错误"}` };
     }
   }
-  async copyTextToClipboard(value2, successMessage = "已复制。") {
+  async copyTextToClipboard(value2: string, successMessage = "已复制。"): Promise<void> {
     await navigator.clipboard.writeText(value2);
     new Notice(successMessage);
   }
@@ -510,12 +527,12 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
       await leaf.setViewState({ type: PREVIEW_VIEW_TYPE, active: true });
     }
     await this.app.workspace.revealLeaf(leaf);
-    await leaf.view.refresh();
+    await (leaf.view as { refresh?: () => Promise<void> }).refresh?.();
   }
   async refreshPreviewLeaves() {
     const leaves = this.app.workspace.getLeavesOfType(PREVIEW_VIEW_TYPE);
     for (const leaf of leaves) {
-      const view = leaf.view;
+      const view = leaf.view as { refresh?: () => Promise<void> };
       if (typeof view.refresh === "function") {
         await view.refresh();
       }
@@ -526,7 +543,7 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
       return leaf.view instanceof MarkdownView && Boolean(leaf.view.file);
     }) ?? null;
   }
-  captureMarkdownContext(leaf) {
+  captureMarkdownContext(leaf?: { view: unknown } | null): void {
     const targetLeaf = leaf ?? this.app.workspace.activeLeaf ?? this.findMarkdownLeaf();
     if (!targetLeaf || !(targetLeaf.view instanceof MarkdownView) || !targetLeaf.view.file) {
       return;
@@ -544,7 +561,7 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
   getPreferredAccountDefaultCover() {
     return this.getPreferredAccount()?.defaultCoverPath?.trim() ?? "";
   }
-  getPublishMetaDraft(file, frontmatter) {
+  getPublishMetaDraft(file: TFile, frontmatter: Record<string, unknown>): { title: string; author: string; cover: string } {
     const draft = this.publishMetaDrafts.get(file.path) ?? {};
     return {
       title: Object.prototype.hasOwnProperty.call(draft, "title") ? draft.title?.trim() ?? "" : typeof frontmatter.title === "string" && frontmatter.title.trim() ? frontmatter.title.trim() : file.basename,
@@ -552,12 +569,12 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
       cover: Object.prototype.hasOwnProperty.call(draft, "cover") ? draft.cover?.trim() ?? "" : typeof frontmatter.cover === "string" && frontmatter.cover.trim() ? frontmatter.cover.trim() : this.getPreferredAccountDefaultCover()
     };
   }
-  updatePublishMetaDraft(fields) {
+  updatePublishMetaDraft(fields: Record<string, string>): void {
     const file = this.getActiveMarkdownFile();
     if (!file) {
       return;
     }
-    const nextDraft = {
+    const nextDraft: Record<string, string> = {
       ...this.publishMetaDrafts.get(file.path) ?? {}
     };
     for (const [key, value2] of Object.entries(fields)) {
@@ -566,7 +583,7 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
     this.publishMetaDrafts.set(file.path, nextDraft);
   }
   /** 清掉当前笔记 draft 中的某个字段，让 getPublishMetaDraft 回落到 frontmatter / 账号默认值。 */
-  resetPublishMetaDraftField(field) {
+  resetPublishMetaDraftField(field: string): void {
     const file = this.getActiveMarkdownFile();
     if (!file) return;
     const currentDraft = this.publishMetaDrafts.get(file.path);
@@ -578,7 +595,7 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
       this.publishMetaDrafts.set(file.path, rest);
     }
   }
-  buildPublishFrontmatter(file, frontmatter, account) {
+  buildPublishFrontmatter(file: TFile, frontmatter: Record<string, unknown>, account: PublisherAccount): Record<string, unknown> {
     const nextFrontmatter = { ...frontmatter };
     const draft = this.publishMetaDrafts.get(file.path) ?? {};
     if (Object.prototype.hasOwnProperty.call(draft, "title")) {
@@ -615,12 +632,12 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
       ...this.settings.styleOverrides
     };
   }
-  getDraftRecord(filePath, accountId) {
+  getDraftRecord(filePath: string, accountId: string): DraftRecord | null {
     return this.settings.draftRecords.find(
       (record) => record.notePath === filePath && record.accountId === accountId
     ) ?? null;
   }
-  async upsertDraftRecord(record) {
+  async upsertDraftRecord(record: DraftRecord): Promise<void> {
     const existingIndex = this.settings.draftRecords.findIndex(
       (item) => item.notePath === record.notePath && item.accountId === record.accountId
     );
@@ -632,7 +649,7 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
     this.settings.draftRecords = pruneDraftRecords(this.settings.draftRecords);
     await this.saveSettings({ refreshPreview: false });
   }
-  async upsertCoverMediaRecord(record) {
+  async upsertCoverMediaRecord(record: CoverMediaRecord): Promise<void> {
     const existingIndex = this.settings.coverMediaRecords.findIndex(
       (item) => item.accountId === record.accountId && item.sourceKey === record.sourceKey
     );
@@ -644,7 +661,7 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
     this.settings.coverMediaRecords = pruneCoverMediaRecords(this.settings.coverMediaRecords);
     await this.saveSettings({ refreshPreview: false });
   }
-  async upsertArticleImageRecords(records) {
+  async upsertArticleImageRecords(records: ArticleImageRecord[]): Promise<void> {
     if (!Array.isArray(records) || records.length === 0) return;
     for (const record of records) {
       const existingIndex = this.settings.articleImageRecords.findIndex(
@@ -659,7 +676,7 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
     this.settings.articleImageRecords = pruneArticleImageRecords(this.settings.articleImageRecords);
     await this.saveSettings({ refreshPreview: false });
   }
-  async saveCurrentStylePreset(name) {
+  async saveCurrentStylePreset(name: string): Promise<string | null> {
     const trimmedName = name.trim();
     if (!trimmedName) {
       new Notice("请先给样式方案起一个名字。");
@@ -687,7 +704,7 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
     await this.saveSettings();
     return "created";
   }
-  async applySavedStylePreset(presetId) {
+  async applySavedStylePreset(presetId: string): Promise<boolean> {
     const preset = this.settings.savedStylePresets.find((item) => item.id === presetId);
     if (!preset) {
       new Notice("没有找到这个样式方案。");
@@ -698,7 +715,7 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
     await this.saveSettings();
     return true;
   }
-  async deleteSavedStylePreset(presetId) {
+  async deleteSavedStylePreset(presetId: string): Promise<boolean> {
     const beforeLength = this.settings.savedStylePresets.length;
     this.settings.savedStylePresets = this.settings.savedStylePresets.filter(
       (preset) => preset.id !== presetId
@@ -709,7 +726,7 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
     await this.saveSettings();
     return true;
   }
-  async pickAccountDefaultCover(accountId) {
+  async pickAccountDefaultCover(accountId: string): Promise<string | null> {
     if (!await this.ensureFeatureAccess("cover-upload", "默认封面")) {
       return null;
     }
@@ -733,7 +750,7 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
     }
     return storedPath;
   }
-  async clearAccountDefaultCover(accountId) {
+  async clearAccountDefaultCover(accountId: string): Promise<boolean> {
     const account = this.settings.accounts.find((item) => item.id === accountId);
     if (!account || !account.defaultCoverPath) {
       return false;
@@ -747,7 +764,7 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
     await this.saveSettings();
     return true;
   }
-  async publishActiveNoteDraft(themeId) {
+  async publishActiveNoteDraft(themeId?: string): Promise<void> {
     if (this.isPublishing) {
       new Notice("正在发布中，请稍候...");
       return;
@@ -779,7 +796,7 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
         app: this.app,
         account,
         file: payload.file,
-        html: payload.result.html,
+        html: payload.result.html as string,
         frontmatter,
         existingDraftMediaId: existingDraftRecord?.mediaId ?? null,
         coverMediaRecords: this.settings.coverMediaRecords,
@@ -843,7 +860,7 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
     const savedFile = await this.app.vault.createBinary(attachmentPath, arrayBuffer);
     return savedFile.path;
   }
-  async pickImageFile() {
+  async pickImageFile(): Promise<File | null> {
     return new Promise((resolve2) => {
       const input = activeDocument.createElement("input");
       input.type = "file";
@@ -854,7 +871,7 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
       input.click();
     });
   }
-  async saveImageIntoPluginFolder(accountId, file) {
+  async saveImageIntoPluginFolder(accountId: string, file: File): Promise<string> {
     const adapter2 = this.app.vault.adapter;
     const coversDir = (0, normalizePath)(
       `${this.app.vault.configDir}/plugins/${this.manifest.id}/covers`
@@ -866,7 +883,7 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
     await adapter2.writeBinary(targetPath, arrayBuffer);
     return targetPath;
   }
-};
+}
 
 export default WeiXinMpPublisherPlugin;
 

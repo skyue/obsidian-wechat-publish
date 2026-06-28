@@ -1,18 +1,19 @@
-import { Modal, Notice, Setting } from 'obsidian';
+import { Modal, Notice, Setting, TextComponent, ExtraButtonComponent } from 'obsidian';
+import type WeiXinMpPublisherPlugin from './main.ts';
 import { createEmptyAccount } from './types.ts';
 
 
-function runAsync(action) {
+function runAsync(action: () => Promise<void>) {
   void action().catch((error3) => {
     console.error(error3);
     new Notice(`操作失败：${error3 instanceof Error ? error3.message : "未知错误"}`, 1e4);
   });
 }
-function addSecretTextField(setting, value2, onChange) {
+function addSecretTextField(setting: Setting, value2: string, onChange: (value: string) => void) {
   let visible = false;
-  let textComponent = null;
-  const updateVisibility = (button) => {
-    if (textComponent) {
+  let textComponent: TextComponent | null = null;
+  const updateVisibility = (button?: ExtraButtonComponent) => {
+    if (textComponent !== null) {
       textComponent.inputEl.type = visible ? "text" : "password";
     }
     button?.setIcon(visible ? "eye-off" : "eye");
@@ -20,7 +21,7 @@ function addSecretTextField(setting, value2, onChange) {
   };
   setting.addText((text6) => {
     textComponent = text6;
-    text6.setPlaceholder("请输入 AppSecret").setValue(value2).onChange((nextValue) => {
+    text6.setPlaceholder("请输入 AppSecret").setValue(value2).onChange((nextValue: string) => {
       onChange(nextValue.trim());
     });
     updateVisibility();
@@ -34,7 +35,8 @@ function addSecretTextField(setting, value2, onChange) {
   });
 }
 export const AccountConfigModal = class extends Modal {
-  constructor(plugin23) {
+  plugin: WeiXinMpPublisherPlugin;
+  constructor(plugin23: WeiXinMpPublisherPlugin) {
     super(plugin23.app);
     this.plugin = plugin23;
   }

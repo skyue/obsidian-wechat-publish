@@ -13,16 +13,30 @@ export default [
   ...tseslint.configs.recommended.map((config) => ({
     ...config,
     files: ["src/**/*.ts", "packages/**/*.ts"],
+    languageOptions: {
+      ...config.languageOptions,
+      parserOptions: {
+        ...config.languageOptions?.parserOptions,
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
     rules: {
       ...config.rules,
-      "@typescript-eslint/no-unsafe-member-access": "off",
-      "@typescript-eslint/no-unsafe-assignment": "off",
-      "@typescript-eslint/no-unsafe-call": "off",
-      "@typescript-eslint/no-unsafe-return": "off",
-      "@typescript-eslint/no-unsafe-argument": "off",
       "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
       "prefer-const": "warn",
-      "@typescript-eslint/no-explicit-any": "warn",
+    },
+  })),
+  ...tseslint.configs.recommendedTypeChecked.map((config) => ({
+    ...config,
+    files: ["src/**/*.ts", "packages/**/*.ts"],
+    languageOptions: {
+      ...config.languageOptions,
+      parserOptions: {
+        ...config.languageOptions?.parserOptions,
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
     },
   })),
 ];

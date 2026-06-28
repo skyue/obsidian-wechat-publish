@@ -1,5 +1,5 @@
 import { App, TFile, requestUrl, normalizePath } from 'obsidian';
-import { HtmlImageRef, PublisherAccount, PublishInput, PublishResult, ArticleImageRecord, ImageAsset, RehostResult, ParsedDataUrl } from './types.ts';
+import { HtmlImageRef, PublisherAccount, PublishInput, PublishResult, ArticleImageRecord, CoverMediaRecord, ImageAsset, RehostResult, ParsedDataUrl, WechatApiJson } from './types.ts';
 import { resolveAssetLinkForWechat, lookupOriginalAssetSource } from './markdown-pipeline.ts';
 const PLACEHOLDER_PNG_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAACWCAIAAAAUvlBOAAABmElEQVR4nO3SQQkAIADAQBObxDgGtIRDkIMLsMfGXBuuG88L+JKxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIvEAXiM4h0Wv2iTAAAAAElFTkSuQmCC";
 const RELAY_BASE_URL = "https://mp.skyue.com/api/proxy";
@@ -38,8 +38,8 @@ function extractHtmlImageRefs(html5: string): HtmlImageRef[] {
   if (typeof DOMParser !== "undefined") {
     try {
       const document2 = new DOMParser().parseFromString(html5, "text/html");
-      const refs2 = [];
-      const seen2 = /* @__PURE__ */ new Set();
+      const refs2: HtmlImageRef[] = [];
+      const seen2 = /* @__PURE__ */ new Set<string>();
       for (const image of Array.from(document2.querySelectorAll("img"))) {
         const src = image.getAttribute("src")?.trim();
         if (!src) {
@@ -62,8 +62,8 @@ function extractHtmlImageRefs(html5: string): HtmlImageRef[] {
     }
   }
   const matches33 = html5.matchAll(/<img\b[^>]*\bsrc="([^"]+)"[^>]*>/g);
-  const refs = [];
-  const seen = /* @__PURE__ */ new Set();
+  const refs: HtmlImageRef[] = [];
+  const seen = /* @__PURE__ */ new Set<string>();
   for (const match2 of matches33) {
     const tag2 = match2[0];
     const src = match2[1];
@@ -190,8 +190,8 @@ function compactWechatHtmlForSubmit(html5: string): string {
   return html5.replace(
     /<a\b[^>]*\bhref=(["'])https:\/\/mp\.weixin\.qq\.com\/cgi-bin\/[^"']*\1[^>]*>([\s\S]*?)<\/a>/gi,
     "$2"
-  ).replace(/\sdata-wxp-source="[^"]*"/g, "").replace(/\sclass="[^"]*"/g, "").replace(/box-sizing:\s*border-box;?/gi, "").replace(/style="\s*([^"]*?)\s*"/g, (_match, styleText) => {
-    const cleaned = styleText.split(";").map((part) => part.trim()).filter(Boolean).join(";");
+  ).replace(/\sdata-wxp-source="[^"]*"/g, "").replace(/\sclass="[^"]*"/g, "").replace(/box-sizing:\s*border-box;?/gi, "").replace(/style="\s*([^"]*?)\s*"/g, (_match: string, styleText: string) => {
+    const cleaned = styleText.split(";").map((part: string) => part.trim()).filter(Boolean).join(";");
     return cleaned ? ` style="${cleaned}"` : "";
   }).replace(/>[ \t\r\n\f\v]+</g, "><").replace(/[ \t\r\n\f\v]{2,}/g, " ").trim();
 }
@@ -212,7 +212,7 @@ function safeGetAdapterFullPath(app: App, normalizedPath: string): string | unde
     if (typeof adapter2.getFullPath !== "function") {
       return void 0;
     }
-    const value2 = adapter2.getFullPath(normalizedPath);
+    const value2 = (adapter2 as { getFullPath(path: string): string }).getFullPath(normalizedPath);
     return typeof value2 === "string" && value2.trim() ? value2 : void 0;
   } catch {
     return void 0;
@@ -247,12 +247,13 @@ async function createCoverMediaSourceKey(asset: ImageAsset): Promise<string> {
   ) : fallbackHashBytes(asset.bytes);
   return `${asset.contentType.toLowerCase()}:${asset.bytes.byteLength}:${hash}`;
 }
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Electron Buffer 无 TS 类型
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
+// Electron / Node.js interop helpers — these platform APIs have no TS types.
+
 function toElectronBinary(bytes: Uint8Array): any {
   const runtime = window;
   return runtime.Buffer?.from ? runtime.Buffer.from(bytes) : bytes;
 }
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Electron nativeImage 无 TS 类型
 function getElectronNativeImage(): any {
   try {
     const runtime = window;
@@ -262,7 +263,6 @@ function getElectronNativeImage(): any {
     return null;
   }
 }
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Node require 无 TS 类型
 function getNodeRequire(): any {
   try {
     const runtime = window;
@@ -271,7 +271,6 @@ function getNodeRequire(): any {
     return null;
   }
 }
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Node require 无 TS 类型
 function requireOptional(runtimeRequire: any, names: string[]): any {
   for (const name of names) {
     try {
@@ -333,12 +332,11 @@ function convertAssetWithSips(asset: ImageAsset, targetFormat: string): ImageAss
       filename: asset.filename,
       contentType: asset.contentType,
       targetFormat,
-      error: error3
+      error: error3 as Error
     });
     return null;
   }
 }
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Electron nativeImage 无 TS 类型
 function createElectronImageFromAsset(nativeImage: any, asset: ImageAsset): any {
   if (asset.filePath && nativeImage.createFromPath) {
     try {
@@ -351,7 +349,7 @@ function createElectronImageFromAsset(nativeImage: any, asset: ImageAsset): any 
         filename: asset.filename,
         contentType: asset.contentType,
         filePath: asset.filePath,
-        error: error3
+        error: error3 as Error
       });
     }
   }
@@ -365,7 +363,7 @@ function createElectronImageFromAsset(nativeImage: any, asset: ImageAsset): any 
       console.warn("Electron nativeImage 通过 data URL 解码失败，尝试回退 Buffer", {
         filename: asset.filename,
         contentType: asset.contentType,
-        error: error3
+        error: error3 as Error
       });
     }
   }
@@ -376,11 +374,12 @@ function createElectronImageFromAsset(nativeImage: any, asset: ImageAsset): any 
     console.warn("Electron nativeImage 通过 Buffer 解码失败", {
       filename: asset.filename,
       contentType: asset.contentType,
-      error: error3
+      error: error3 as Error
     });
     return null;
   }
 }
+/* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
 function stringToBase642(value2: string): string {
   const encoded = new TextEncoder().encode(value2);
   let binary2 = "";
@@ -502,7 +501,7 @@ async function loadRasterImage(asset: ImageAsset): Promise<{ drawable: CanvasIma
       console.warn("createImageBitmap 解码失败，回退 HTMLImageElement", {
         filename: asset.filename,
         contentType: asset.contentType,
-        error: error3
+        error: error3 as Error
       });
     }
   }
@@ -519,7 +518,7 @@ async function loadRasterImage(asset: ImageAsset): Promise<{ drawable: CanvasIma
         filename: asset.filename,
         contentType: asset.contentType,
         sourceUrl: asset.sourceUrl,
-        error: error3
+        error: error3 as Error
       });
     }
   }
@@ -564,6 +563,7 @@ async function loadSvgImage(asset: ImageAsset): Promise<{ drawable: HTMLImageEle
   };
 }
 async function convertAssetToPng(asset: ImageAsset): Promise<ImageAsset> {
+  /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
   const nativeImage = getElectronNativeImage();
   if (nativeImage) {
     const image = createElectronImageFromAsset(nativeImage, asset);
@@ -579,6 +579,7 @@ async function convertAssetToPng(asset: ImageAsset): Promise<ImageAsset> {
       contentType: asset.contentType
     });
   }
+  /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
   if (!asset.contentType.includes("svg")) {
     const sipsResult = convertAssetWithSips(asset, "png");
     if (sipsResult) {
@@ -594,7 +595,7 @@ async function convertAssetToPng(asset: ImageAsset): Promise<ImageAsset> {
     throw new Error("无法创建图片转换画布");
   }
   context.drawImage(rasterSource.drawable, 0, 0, canvas.width, canvas.height);
-  const pngBlob = await new Promise((resolve2, reject3) => {
+  const pngBlob = await new Promise<Blob>((resolve2, reject3) => {
     canvas.toBlob((blob) => {
       if (blob) {
         resolve2(blob);
@@ -610,6 +611,7 @@ async function convertAssetToPng(asset: ImageAsset): Promise<ImageAsset> {
   };
 }
 async function convertAssetToJpeg(asset: ImageAsset, options3?: { maxWidth?: number; maxHeight?: number; quality?: number }): Promise<ImageAsset> {
+  /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
   const nativeImage = getElectronNativeImage();
   if (nativeImage) {
     let image = createElectronImageFromAsset(nativeImage, asset);
@@ -642,6 +644,7 @@ async function convertAssetToJpeg(asset: ImageAsset, options3?: { maxWidth?: num
       contentType: asset.contentType
     });
   }
+  /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
   if (!asset.contentType.includes("svg")) {
     const sipsResult = convertAssetWithSips(asset, "jpeg");
     if (sipsResult) {
@@ -666,7 +669,7 @@ async function convertAssetToJpeg(asset: ImageAsset, options3?: { maxWidth?: num
   context.fillStyle = "#ffffff";
   context.fillRect(0, 0, targetWidth, targetHeight);
   context.drawImage(rasterSource.drawable, 0, 0, targetWidth, targetHeight);
-  const jpegBlob = await new Promise((resolve2, reject3) => {
+  const jpegBlob = await new Promise<Blob>((resolve2, reject3) => {
     canvas.toBlob(
       (blob) => {
         if (blob) {
@@ -706,7 +709,7 @@ async function normalizeWechatAsset(asset: ImageAsset): Promise<ImageAsset> {
       console.warn("[WeiXin MP Publisher] 正文图片转 PNG 失败，回退 JPEG 压缩", {
         filename: asset.filename,
         contentType: asset.contentType,
-        error: error3
+        error: error3 as Error
       });
     }
   }
@@ -756,7 +759,7 @@ Content-Type: ${asset.contentType}\r
   };
 }
 async function runWithTimeout<T>(task: Promise<T>, timeoutMs: number, label: string): Promise<T> {
-  let timeoutId = null;
+  let timeoutId: number | null = null;
   try {
     return await Promise.race([
       task,
@@ -812,7 +815,7 @@ async function requestWechatJson(url: string, init3?: WechatRequestOptions): Pro
     init3?.timeoutMs ?? REQUEST_TIMEOUT_MS,
     init3?.requestLabel ?? "微信请求"
   );
-  const data6 = response.json;
+  const data6 = response.json as WechatApiJson;
   if (response.status >= 400) {
     throw new Error(`HTTP ${response.status}: ${response.text}`);
   }
@@ -845,14 +848,14 @@ async function fetchBinaryAsset(url: string): Promise<ImageAsset> {
       throw new Error("不支持的 data URL");
     }
     const ext = guessExtension(parsed.mimeType);
-    let bytes;
+    let bytes: Uint8Array;
     if (parsed.isBase64) {
       try {
         bytes = base64ToUint8Array(parsed.data);
       } catch (error3) {
         console.warn("data URL 标记为 base64，但解码失败，尝试按普通文本处理", {
           mimeType: parsed.mimeType,
-          error: error3,
+          error: error3 as Error,
           preview: parsed.data.slice(0, 80)
         });
         bytes = plainDataToUint8Array(parsed.data);
@@ -1004,7 +1007,7 @@ async function resolveArticleImageAsset(app: App, file: TFile, source: string): 
 async function uploadWechatImage(account: PublisherAccount, accessToken: string, endpoint: string, asset: ImageAsset): Promise<string> {
   const uploadUrl = endpoint === "uploadimg" ? `https://api.weixin.qq.com/cgi-bin/media/uploadimg?access_token=${accessToken}` : `https://api.weixin.qq.com/cgi-bin/material/add_material?access_token=${accessToken}&type=image`;
   const requestLabel = endpoint === "uploadimg" ? "上传正文图片" : "上传封面";
-  let normalizedAsset;
+  let normalizedAsset: ImageAsset;
   try {
     normalizedAsset = endpoint === "material" ? await normalizeWechatCoverAsset(asset) : await normalizeWechatAsset(asset);
   } catch (error3) {
@@ -1023,7 +1026,7 @@ async function uploadWechatImage(account: PublisherAccount, accessToken: string,
       requestLabel
     });
   };
-  let data6;
+  let data6: Record<string, unknown>;
   try {
     data6 = await attemptUpload(normalizedAsset);
   } catch (error3) {
@@ -1038,7 +1041,7 @@ async function uploadWechatImage(account: PublisherAccount, accessToken: string,
       filename: normalizedAsset.filename,
       contentType: normalizedAsset.contentType,
       byteLength: normalizedAsset.bytes.byteLength,
-      error: error3
+      error: error3 as Error
     });
     normalizedAsset = await forceSafeWechatAsset(endpoint, asset);
     try {
@@ -1083,7 +1086,7 @@ async function rehostArticleImages(app: App, file: TFile, html5: string, accessT
   }
   for (const [index2, ref] of refs.entries()) {
     onProgress?.(`正在上传正文图片 ${index2 + 1}/${refs.length}...`);
-    let asset;
+    let asset: ImageAsset;
     const mappedSource = ref.src.startsWith("data:") ? lookupOriginalAssetSource(ref.src) : null;
     try {
       asset = await resolveArticleImageAsset(app, file, ref.originalSource ?? ref.src);
@@ -1096,7 +1099,7 @@ async function rehostArticleImages(app: App, file: TFile, html5: string, accessT
     const cachedRecord = records.find(function(r) {
       return r.accountId === account.id && r.sourceKey === sourceKey;
     });
-    let wechatUrl;
+    let wechatUrl: string;
     if (cachedRecord?.url) {
       wechatUrl = cachedRecord.url;
     } else {
@@ -1137,7 +1140,7 @@ async function resolveExistingDraft(accessToken: string, account: PublisherAccou
   }
   let offset = 0;
   const pageSize = 20;
-  let latestTitleMatch = null;
+  let latestTitleMatch: { mediaId: string; title: string; updateTime: number } | null = null;
   while (offset < 200) {
     const data6 = await requestWechatJson(`https://api.weixin.qq.com/cgi-bin/draft/batchget?access_token=${accessToken}`, {
       account,
@@ -1153,15 +1156,17 @@ async function resolveExistingDraft(accessToken: string, account: PublisherAccou
       timeoutMs: UPLOAD_TIMEOUT_MS,
       requestLabel: "查询已有草稿"
     });
-    const items = data6.item ?? [];
+    const items: Array<Record<string, unknown>> = (data6.item as Array<Record<string, unknown>> | undefined) ?? [];
     for (const item of items) {
-      const currentTitle = item.content?.news_item?.[0]?.title?.trim() ?? "";
+      const content = item.content as Record<string, unknown> | undefined;
+      const newsItem = (content?.news_item as Array<Record<string, unknown>> | undefined)?.[0];
+      const currentTitle = typeof newsItem?.title === 'string' ? newsItem.title.trim() : '';
       const resolvedDraft = {
         mediaId: item.media_id,
         title: currentTitle,
-        updateTime: item.update_time ?? 0
+        updateTime: (item.update_time as number) ?? 0
       };
-      if (normalizedMediaId && item.media_id === normalizedMediaId) {
+      if (normalizedMediaId && (item.media_id as string) === normalizedMediaId) {
         return resolvedDraft;
       }
       if (normalizedTitle && currentTitle === normalizedTitle && (!latestTitleMatch || resolvedDraft.updateTime > latestTitleMatch.updateTime)) {
@@ -1215,7 +1220,7 @@ async function validateWechatMaterialMediaId(accessToken: string, account: Publi
   if (!maybeJson) {
     return true;
   }
-  const data6 = response.json;
+  const data6 = response.json as WechatApiJson;
   if (typeof data6?.errcode !== "number" || data6.errcode === 0) {
     return true;
   }
@@ -1228,7 +1233,7 @@ export async function publishDraftToWechat(input: PublishInput): Promise<Publish
   if (!input.account.appId || !input.account.appSecret) {
     throw new Error("当前账号缺少 AppID 或 AppSecret");
   }
-  let accessToken;
+  let accessToken: string;
   if (input.account.apiKey) {
     accessToken = "";
   } else {
@@ -1236,7 +1241,7 @@ export async function publishDraftToWechat(input: PublishInput): Promise<Publish
     accessToken = await getAccessToken(input.account);
     input.onProgress?.("access_token 获取成功");
   }
-  let coverMediaRecord;
+  let coverMediaRecord: CoverMediaRecord | undefined;
   let coverAction = "existing-frontmatter";
   let thumbMediaId = typeof input.frontmatter.thumb_media_id === "string" ? input.frontmatter.thumb_media_id.trim() : "";
   if (!thumbMediaId) {
@@ -1245,7 +1250,7 @@ export async function publishDraftToWechat(input: PublishInput): Promise<Publish
     const firstHtmlImageUrl = extractFirstHtmlImageUrl(input.html) ?? "";
     const coverUrl = frontmatterCover || defaultCoverPath || firstHtmlImageUrl || PLACEHOLDER_PNG_DATA_URL;
     input.onProgress?.("正在处理封面图...");
-    let coverAsset;
+    let coverAsset: ImageAsset;
     try {
       coverAsset = await resolveCoverAsset(input.app, input.file, coverUrl);
     } catch (error3) {
@@ -1273,7 +1278,7 @@ export async function publishDraftToWechat(input: PublishInput): Promise<Publish
       } catch (error3) {
         console.warn("校验已缓存封面素材失败，将重新上传封面", {
           mediaId: cachedCover.mediaId,
-          error: error3
+          error: error3 as Error
         });
       }
     }

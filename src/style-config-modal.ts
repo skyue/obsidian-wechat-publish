@@ -1,4 +1,5 @@
-import { Modal, Notice, Setting } from 'obsidian';
+import { Modal, Notice, Setting, TextComponent, SliderComponent, ColorComponent } from 'obsidian';
+import type WeiXinMpPublisherPlugin from './main.ts';
 import { getStyleProfileById } from '../packages/theme-pack/src/index.ts';
 const FONT_PRESET_OPTIONS = [
   { value: "theme-default", label: "跟随当前主题" },
@@ -40,26 +41,26 @@ const FIGURE_CAPTION_OPTIONS = [
   { value: "alt-only", label: "只显示 alt" },
   { value: "none", label: "不显示" }
 ];
-function clamp(value2, min9, max10) {
+function clamp(value2: number, min9: number, max10: number): number {
   return Math.min(max10, Math.max(min9, value2));
 }
-function countDecimals(step3) {
+function countDecimals(step3: number): number {
   const value2 = String(step3);
   const dotIndex = value2.indexOf(".");
   return dotIndex === -1 ? 0 : value2.length - dotIndex - 1;
 }
-function formatNumber(value2, step3) {
+function formatNumber(value2: number, step3: number): string {
   const precision = countDecimals(step3);
   return precision === 0 ? String(Math.round(value2)) : value2.toFixed(precision).replace(/\.?0+$/, "");
 }
-function extractUnitValue(value2, fallback) {
+function extractUnitValue(value2: string | undefined, fallback: number): number {
   if (!value2) {
     return fallback;
   }
   const match2 = value2.trim().match(/-?\d+(\.\d+)?/);
   return match2 ? Number(match2[0]) : fallback;
 }
-function extractPairValue(value2, fallback) {
+function extractPairValue(value2: string | undefined, fallback: [number, number]): [number, number] {
   if (!value2) {
     return fallback;
   }
@@ -68,22 +69,22 @@ function extractPairValue(value2, fallback) {
   const second2 = Number.isFinite(matches33[1]) ? matches33[1] : fallback[1];
   return [first4, second2];
 }
-function buildUnitValue(value2, step3, unit2) {
+function buildUnitValue(value2: number, step3: number, unit2: string): string {
   return `${formatNumber(value2, step3)}${unit2}`;
 }
-function buildPairValue(current, index2, nextValue, fallback, unit2, step3) {
+function buildPairValue(current: string, index2: number, nextValue: number, fallback: [number, number], unit2: string, step3: number): string {
   const pair = extractPairValue(current, fallback);
   pair[index2] = nextValue;
   return `${formatNumber(pair[0], step3)}${unit2} ${formatNumber(pair[1], step3)}${unit2}`;
 }
-function buildMixedPairValue(current, index2, nextValue, fallback, units, steps) {
+function buildMixedPairValue(current: string, index2: number, nextValue: number, fallback: [number, number], units: [string, string], steps: [number, number]): string {
   const pair = extractPairValue(current, fallback);
   pair[index2] = nextValue;
   return `${formatNumber(pair[0], steps[0])}${units[0]} ${formatNumber(pair[1], steps[1])}${units[1]}`;
 }
-function addNumberField(options3) {
-  let sliderRef = null;
-  let inputRef = null;
+function addNumberField(options3: { container: HTMLElement; name: string; desc?: string; key?: string; min: number; max: number; step: number; unit?: string; onChange(value: number): void; afterChange?(): void; value: number }) {
+  let sliderRef: SliderComponent | null = null;
+  let inputRef: TextComponent | null = null;
   const setting = new Setting(options3.container).setName(options3.name).setDesc(options3.desc ?? "");
   setting.settingEl.addClass("weixin-mp-publisher-slider-setting");
   setting.controlEl.addClass("weixin-mp-publisher-slider-control");
@@ -119,7 +120,8 @@ function addNumberField(options3) {
   });
 }
 export const StyleConfigModal = class extends Modal {
-  constructor(plugin23) {
+  plugin: WeiXinMpPublisherPlugin;
+  constructor(plugin23: WeiXinMpPublisherPlugin) {
     super(plugin23.app);
     this.plugin = plugin23;
   }
@@ -156,8 +158,8 @@ export const StyleConfigModal = class extends Modal {
     this.modalEl.removeClass("weixin-mp-publisher-style-modal");
     this.contentEl.empty();
   }
-  buildSavedPresetsSection(container2) {
-    const section = this.createSection(
+  buildSavedPresetsSection(container2: HTMLElement) {
+    const section: HTMLElement = this.createSection(
       container2,
       "我的方案",
       "最多保存 5 个带别名的格式方案，后面可以一键套用。"
@@ -203,8 +205,8 @@ export const StyleConfigModal = class extends Modal {
       });
     }
   }
-  buildTypographySection(container2) {
-    const section = this.createSection(
+  buildTypographySection(container2: HTMLElement) {
+    const section: HTMLElement = this.createSection(
       container2,
       "字体与正文",
       "控制阅读节奏：字体、字号、间距和段落排版。"
@@ -282,7 +284,7 @@ export const StyleConfigModal = class extends Modal {
       min: 0,
       max: 48,
       step: 1,
-      value: extractUnitValue(effective.contentSideIndent, 0),
+      value: extractUnitValue(effective.contentSideIndent as string | undefined, 0),
       onChange: (value2) => {
         overrides.contentSideIndent = buildUnitValue(value2, 1, "px");
       },
@@ -327,8 +329,8 @@ export const StyleConfigModal = class extends Modal {
       });
     });
   }
-  buildHeadingSection(container2) {
-    const section = this.createSection(
+  buildHeadingSection(container2: HTMLElement) {
+    const section: HTMLElement = this.createSection(
       container2,
       "标题结构",
       "H1-H4 单独控制，H5 和 H6 跟随 H4。"
@@ -348,8 +350,8 @@ export const StyleConfigModal = class extends Modal {
       overrides.h4Style = value2;
     });
   }
-  buildQuoteAndMediaSection(container2) {
-    const section = this.createSection(
+  buildQuoteAndMediaSection(container2: HTMLElement) {
+    const section: HTMLElement = this.createSection(
       container2,
       "引用与图片",
       "这里控制 callout / 引用块的包裹感，以及图片圆角和图注。"
@@ -424,11 +426,11 @@ export const StyleConfigModal = class extends Modal {
         overrides.figureCaptionMode = value2;
       }
     );
-    let textRef = null;
-    let colorRef = null;
+    let textRef: TextComponent | null = null;
+    let colorRef: ColorComponent | null = null;
     new Setting(section).setName("自定义主色").setDesc("留空时沿用当前主题主色。").addColorPicker((picker) => {
       colorRef = picker;
-      picker.setValue(effective.customPrimaryColor ?? "#0f4c81");
+      picker.setValue((effective.customPrimaryColor as string) ?? "#0f4c81");
       picker.onChange((value2) => {
         overrides.customPrimaryColor = value2;
         textRef?.setValue(value2);
@@ -436,7 +438,7 @@ export const StyleConfigModal = class extends Modal {
       });
     }).addText((text6) => {
       textRef = text6;
-      text6.setPlaceholder("#0F4C81").setValue(effective.customPrimaryColor ?? "");
+      text6.setPlaceholder("#0F4C81").setValue((effective.customPrimaryColor as string) ?? "");
       text6.onChange((value2) => {
         const next4 = value2.trim();
         overrides.customPrimaryColor = next4 || void 0;
@@ -446,11 +448,11 @@ export const StyleConfigModal = class extends Modal {
         this.refreshPreview();
       });
     });
-    let pageTextRef = null;
-    let pageColorRef = null;
+    let pageTextRef: TextComponent | null = null;
+    let pageColorRef: ColorComponent | null = null;
     new Setting(section).setName("纸张颜色").setDesc("控制正文承载区域的底色，也就是文字下面那层页面颜色。").addColorPicker((picker) => {
       pageColorRef = picker;
-      picker.setValue(effective.customPageBackgroundColor ?? "#ffffff");
+      picker.setValue((effective.customPageBackgroundColor as string) ?? "#ffffff");
       picker.onChange((value2) => {
         overrides.customPageBackgroundColor = value2;
         pageTextRef?.setValue(value2);
@@ -458,7 +460,7 @@ export const StyleConfigModal = class extends Modal {
       });
     }).addText((text6) => {
       pageTextRef = text6;
-      text6.setPlaceholder("#FFFFFF").setValue(effective.customPageBackgroundColor ?? "");
+      text6.setPlaceholder("#FFFFFF").setValue((effective.customPageBackgroundColor as string) ?? "");
       text6.onChange((value2) => {
         const next4 = value2.trim();
         overrides.customPageBackgroundColor = next4 || void 0;
@@ -469,8 +471,8 @@ export const StyleConfigModal = class extends Modal {
       });
     });
   }
-  buildCodeSection(container2) {
-    const section = this.createSection(
+  buildCodeSection(container2: HTMLElement) {
+    const section: HTMLElement = this.createSection(
       container2,
       "代码块",
       "代码块主题和结构独立控制，避免跟正文排版绑死。"
@@ -498,8 +500,8 @@ export const StyleConfigModal = class extends Modal {
       });
     });
   }
-  buildTagSection(container2) {
-    const section = this.createSection(
+  buildTagSection(container2: HTMLElement) {
+    const section: HTMLElement = this.createSection(
       container2,
       "标签样式",
       "控制正文中 #标签 的渲染方式。"
@@ -509,7 +511,7 @@ export const StyleConfigModal = class extends Modal {
     this.addDropdownSetting(
       section,
       "标签外观",
-      effective.tagStyle ?? "pill",
+      (effective.tagStyle as string) ?? "pill",
       [
         { value: "pill", label: "胶囊（带背景色）" },
         { value: "plain", label: "纯文字（仅主色）" }
@@ -519,18 +521,18 @@ export const StyleConfigModal = class extends Modal {
       }
     );
   }
-  createSection(container2, title2, desc) {
-    const section = container2.createDiv({ cls: "weixin-mp-publisher-style-section" });
+  createSection(container2: HTMLElement, title2: string, desc: string): HTMLElement {
+    const section: HTMLElement = container2.createDiv({ cls: "weixin-mp-publisher-style-section" });
     section.createEl("h3", { text: title2, cls: "weixin-mp-publisher-style-section-title" });
     section.createEl("p", { text: desc, cls: "weixin-mp-publisher-style-section-desc" });
     return section;
   }
-  addDropdownSetting(container2, name, value2, options3, onChange) {
+  addDropdownSetting(container2: HTMLElement, name: string, value2: string, options3: Array<{ value: string; label: string }>, onChange: (value: string) => void) {
     new Setting(container2).setName(name).addDropdown((dropdown) => {
       for (const option2 of options3) {
         dropdown.addOption(option2.value, option2.label);
       }
-      dropdown.setValue(value2).onChange((nextValue) => {
+      dropdown.setValue(value2).onChange((nextValue: string) => {
         onChange(nextValue);
         this.refreshPreview();
       });

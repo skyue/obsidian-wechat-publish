@@ -1,6 +1,13 @@
 import { App, TFile } from 'obsidian';
 import { createEntitlementsForPlan } from '../packages/shared-types/src/index.ts';
 
+/** JSON shape returned by WeChat API endpoints — all carry optional errcode/errmsg. */
+export interface WechatApiJson {
+  errcode?: number;
+  errmsg?: string;
+  [key: string]: unknown;
+}
+
 const DRAFT_RECORD_RETENTION_DAYS = 14;
 const DRAFT_RECORD_LIMIT = 200;
 const COVER_MEDIA_RECORD_RETENTION_DAYS = 365;
@@ -47,10 +54,10 @@ export function createEmptyAccount() {
 export function createStylePresetId() {
   return window.crypto?.randomUUID?.() ?? `style-preset-${Date.now()}`;
 }
-export function cloneStyleOverrides(styleOverrides) {
+export function cloneStyleOverrides(styleOverrides: StyleOverrides): StyleOverrides {
   return { ...styleOverrides };
 }
-export function normalizePublisherAccount(account) {
+export function normalizePublisherAccount(account: Partial<PublisherAccount> | null | undefined): PublisherAccount {
   return {
     ...createEmptyAccount(),
     ...account ?? {},
@@ -72,30 +79,32 @@ export function normalizePublisherAccount(account) {
     licenseLastValidatedAt: typeof account?.licenseLastValidatedAt === "string" ? account.licenseLastValidatedAt : null
   };
 }
-export function cloneDraftRecords(draftRecords) {
-  const normalizedRecords = Array.isArray(draftRecords) ? draftRecords.filter(
-    (record) => Boolean(record?.notePath && record?.accountId && record?.mediaId)
+export function cloneDraftRecords(draftRecords: unknown): DraftRecord[] {
+  if (!Array.isArray(draftRecords)) return [];
+  const normalizedRecords = (draftRecords as Array<Record<string, unknown>>).filter(
+    (record) => Boolean(record.notePath && record.accountId && record.mediaId)
   ).map((record) => ({
-    notePath: String(record.notePath),
-    accountId: String(record.accountId),
-    mediaId: String(record.mediaId),
+    notePath: typeof record.notePath === 'string' ? record.notePath : '',
+    accountId: typeof record.accountId === 'string' ? record.accountId : '',
+    mediaId: typeof record.mediaId === 'string' ? record.mediaId : '',
     title: typeof record.title === "string" ? record.title : "",
     updatedAt: typeof record.updatedAt === "string" && record.updatedAt ? record.updatedAt : (/* @__PURE__ */ new Date()).toISOString()
-  })) : [];
+  }));
   return pruneDraftRecords(normalizedRecords);
 }
-export function cloneCoverMediaRecords(coverMediaRecords) {
-  const normalizedRecords = Array.isArray(coverMediaRecords) ? coverMediaRecords.filter(
-    (record) => Boolean(record?.accountId && record?.sourceKey && record?.mediaId)
+export function cloneCoverMediaRecords(coverMediaRecords: unknown): CoverMediaRecord[] {
+  if (!Array.isArray(coverMediaRecords)) return [];
+  const normalizedRecords = (coverMediaRecords as Array<Record<string, unknown>>).filter(
+    (record) => Boolean(record.accountId && record.sourceKey && record.mediaId)
   ).map((record) => ({
-    accountId: String(record.accountId),
-    sourceKey: String(record.sourceKey),
-    mediaId: String(record.mediaId),
+    accountId: typeof record.accountId === 'string' ? record.accountId : '',
+    sourceKey: typeof record.sourceKey === 'string' ? record.sourceKey : '',
+    mediaId: typeof record.mediaId === 'string' ? record.mediaId : '',
     updatedAt: typeof record.updatedAt === "string" && record.updatedAt ? record.updatedAt : (/* @__PURE__ */ new Date()).toISOString()
-  })) : [];
+  }));
   return pruneCoverMediaRecords(normalizedRecords);
 }
-export function pruneDraftRecords(draftRecords) {
+export function pruneDraftRecords(draftRecords: DraftRecord[]): DraftRecord[] {
   const cutoffTime = Date.now() - DRAFT_RECORD_RETENTION_DAYS * 24 * 60 * 60 * 1e3;
   return draftRecords.filter((record) => {
     const updatedAtTime = new Date(record.updatedAt).getTime();
@@ -104,7 +113,7 @@ export function pruneDraftRecords(draftRecords) {
     return new Date(right3.updatedAt).getTime() - new Date(left3.updatedAt).getTime();
   }).slice(0, DRAFT_RECORD_LIMIT);
 }
-export function pruneCoverMediaRecords(coverMediaRecords) {
+export function pruneCoverMediaRecords(coverMediaRecords: CoverMediaRecord[]): CoverMediaRecord[] {
   const cutoffTime = Date.now() - COVER_MEDIA_RECORD_RETENTION_DAYS * 24 * 60 * 60 * 1e3;
   return coverMediaRecords.filter((record) => {
     const updatedAtTime = new Date(record.updatedAt).getTime();
@@ -113,18 +122,19 @@ export function pruneCoverMediaRecords(coverMediaRecords) {
     return new Date(right3.updatedAt).getTime() - new Date(left3.updatedAt).getTime();
   }).slice(0, COVER_MEDIA_RECORD_LIMIT);
 }
-export function cloneArticleImageRecords(articleImageRecords) {
-  const normalizedRecords = Array.isArray(articleImageRecords) ? articleImageRecords.filter(
-    (record) => Boolean(record?.accountId && record?.sourceKey && record?.url)
+export function cloneArticleImageRecords(articleImageRecords: unknown): ArticleImageRecord[] {
+  if (!Array.isArray(articleImageRecords)) return [];
+  const normalizedRecords = (articleImageRecords as Array<Record<string, unknown>>).filter(
+    (record) => Boolean(record.accountId && record.sourceKey && record.url)
   ).map((record) => ({
-    accountId: String(record.accountId),
-    sourceKey: String(record.sourceKey),
-    url: String(record.url),
+    accountId: typeof record.accountId === 'string' ? record.accountId : '',
+    sourceKey: typeof record.sourceKey === 'string' ? record.sourceKey : '',
+    url: typeof record.url === 'string' ? record.url : '',
     updatedAt: typeof record.updatedAt === "string" && record.updatedAt ? record.updatedAt : (/* @__PURE__ */ new Date()).toISOString()
-  })) : [];
+  }));
   return pruneArticleImageRecords(normalizedRecords);
 }
-export function pruneArticleImageRecords(articleImageRecords) {
+export function pruneArticleImageRecords(articleImageRecords: ArticleImageRecord[]): ArticleImageRecord[] {
   const cutoffTime = Date.now() - ARTICLE_IMAGE_RECORD_RETENTION_DAYS * 24 * 60 * 60 * 1e3;
   return articleImageRecords.filter((record) => {
     const updatedAtTime = new Date(record.updatedAt).getTime();
@@ -181,6 +191,7 @@ export interface StyleOverrides {
   textAlign: string;
   paragraphIndent: boolean;
   figureCaptionMode: string;
+  [key: string]: string | boolean | undefined;
 }
 
 export interface StylePreset {

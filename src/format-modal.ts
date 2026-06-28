@@ -1,13 +1,15 @@
 import { Modal, Notice, Setting } from 'obsidian';
+import type WeiXinMpPublisherPlugin from './main.ts';
 import { getStyleProfileById } from '../packages/theme-pack/src/index.ts';
-function runAsync2(action) {
+function runAsync2(action: () => Promise<void>) {
   void action().catch((error3) => {
     console.error(error3);
     new Notice(`操作失败：${error3 instanceof Error ? error3.message : "未知错误"}`, 1e4);
   });
 }
 export const FormatModal = class extends Modal {
-  constructor(plugin23) {
+  plugin: WeiXinMpPublisherPlugin;
+  constructor(plugin23: WeiXinMpPublisherPlugin) {
     super(plugin23.app);
     this.plugin = plugin23;
   }
@@ -25,8 +27,8 @@ export const FormatModal = class extends Modal {
     this.modalEl.removeClass("weixin-mp-publisher-style-modal");
     this.contentEl.empty();
   }
-  buildThemeSection(container2) {
-    const section = this.createSection(
+  buildThemeSection(container2: HTMLElement) {
+    const section: HTMLElement = this.createSection(
       container2,
       "主题风格",
       "控制整体视觉气质，比如主色、标题外观、引用块和页面氛围。"
@@ -44,8 +46,8 @@ export const FormatModal = class extends Modal {
       });
     });
   }
-  buildLayoutSection(container2) {
-    const section = this.createSection(
+  buildLayoutSection(container2: HTMLElement) {
+    const section: HTMLElement = this.createSection(
       container2,
       "排版模板",
       "控制字号、行高、留白和阅读节奏，不直接改变主题颜色。"
@@ -63,8 +65,8 @@ export const FormatModal = class extends Modal {
       });
     });
   }
-  buildSavedSchemesSection(container2) {
-    const section = this.createSection(
+  buildSavedSchemesSection(container2: HTMLElement) {
+    const section: HTMLElement = this.createSection(
       container2,
       "我的方案",
       "你保存过的整套格式搭配，可以一键套用。"
@@ -96,8 +98,8 @@ export const FormatModal = class extends Modal {
       });
     });
   }
-  buildAdvancedSection(container2) {
-    const section = this.createSection(
+  buildAdvancedSection(container2: HTMLElement) {
+    const section: HTMLElement = this.createSection(
       container2,
       "高级微调",
       "细调字体、标题样式、引用块、代码块、图注和纸张颜色等参数。"
@@ -111,8 +113,8 @@ export const FormatModal = class extends Modal {
       });
     });
   }
-  createSection(container2, title2, description) {
-    const section = container2.createDiv({ cls: "weixin-mp-publisher-style-section" });
+  createSection(container2: HTMLElement, title2: string, description: string): HTMLElement {
+    const section: HTMLElement = container2.createDiv({ cls: "weixin-mp-publisher-style-section" });
     section.createEl("h3", {
       cls: "weixin-mp-publisher-style-section-title",
       text: title2

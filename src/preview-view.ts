@@ -1,60 +1,62 @@
-import { ItemView, Notice, TFile, normalizePath } from 'obsidian';
+import { ItemView, Notice, TFile, WorkspaceLeaf, normalizePath } from 'obsidian';
+import type WeiXinMpPublisherPlugin from './main.ts';
 export const PREVIEW_VIEW_TYPE = "weixin-mp-publisher-preview";
 const SVG_NS = "http://www.w3.org/2000/svg";
 export const WeiXinMpPublisherPreviewView = class extends ItemView {
-  constructor(leaf, plugin23) {
+  plugin: WeiXinMpPublisherPlugin;
+  constructor(leaf: WorkspaceLeaf, plugin23: WeiXinMpPublisherPlugin) {
     super(leaf);
     this.plugin = plugin23;
   }
   // Toolbar / drawer structure
-  toolbarEl = null;
-  drawerEl = null;
-  metaCardEl = null;
-  metaCoverEl = null;
-  metaTitleEl = null;
-  metaSubEl = null;
-  metaCaretEl = null;
+  toolbarEl: HTMLElement | null = null;
+  drawerEl: HTMLElement | null = null;
+  metaCardEl: HTMLElement | null = null;
+  metaCoverEl: HTMLElement | null = null;
+  metaTitleEl: HTMLElement | null = null;
+  metaSubEl: HTMLElement | null = null;
+  metaCaretEl: HTMLElement | null = null;
   drawerOpen = false;
   // Drawer inputs
-  titleInputEl = null;
-  authorInputEl = null;
-  coverInputEl = null;
-  coverThumbEl = null;
+  titleInputEl: HTMLInputElement | null = null;
+  authorInputEl: HTMLInputElement | null = null;
+  coverInputEl: HTMLInputElement | null = null;
+  coverThumbEl: HTMLElement | null = null;
   // Account pill + dropdown
-  accountPillEl = null;
-  accountPillStatusEl = null;
-  accountPillNameEl = null;
-  accountMenuWrapEl = null;
-  accountMenuEl = null;
+  accountPillEl: HTMLElement | null = null;
+  accountPillStatusEl: HTMLElement | null = null;
+  accountPillNameEl: HTMLElement | null = null;
+  accountMenuWrapEl: HTMLElement | null = null;
+  accountMenuEl: HTMLElement | null = null;
   accountMenuOpen = false;
   // Theme/layout pill + dropdown
-  themePillEl = null;
-  themePillNameEl = null;
-  themeMenuWrapEl = null;
-  themeMenuEl = null;
+  themePillEl: HTMLElement | null = null;
+  themePillNameEl: HTMLElement | null = null;
+  themeMenuWrapEl: HTMLElement | null = null;
+  themeMenuEl: HTMLElement | null = null;
   themeMenuOpen = false;
   // More (⋯) menu
-  moreButtonEl = null;
-  moreMenuWrapEl = null;
-  moreMenuEl = null;
+  moreButtonEl: HTMLElement | null = null;
+  moreMenuWrapEl: HTMLElement | null = null;
+  moreMenuEl: HTMLElement | null = null;
   moreMenuOpen = false;
   // Hidden-toolbar tab handle
-  toolbarHiddenHandleEl = null;
+  toolbarHiddenHandleEl: HTMLElement | null = null;
   toolbarHidden = false;
   // Status meta + preview
-  metaEl = null;
-  previewEl = null;
+  metaEl: HTMLElement | null = null;
+  previewEl: HTMLElement | null = null;
   // Scroll sync state (preserved from previous implementation)
   syncEnabled = false;
-  syncRAF = null;
+  syncRAF: number | null = null;
   isSyncing = false;
-  onPreviewScrollBound = null;
-  onEditorScrollBound = null;
-  editorScrollEl = null;
-  editorScrollCaptureCleanup = null;
+  onPreviewScrollBound: (() => void) | null = null;
+  onEditorScrollBound: (() => void) | null = null;
+  editorScrollEl: HTMLElement | null = null;
+  editorScrollCaptureCleanup: (() => void) | null = null;
   syncStatusLabel = "已关闭";
   // Document-level listener for closing popovers
-  onDocumentMouseDown = null;
+  onDocumentMouseDown: ((e: MouseEvent) => void) | null = null;
   getViewType() {
     return PREVIEW_VIEW_TYPE;
   }
@@ -267,7 +269,7 @@ export const WeiXinMpPublisherPreviewView = class extends ItemView {
       void this.refresh();
     });
   }
-  renderIconButton(container2, icon2, title2, onClick) {
+  renderIconButton(container2: HTMLElement, icon2: string, title2: string, onClick: (e: MouseEvent) => void): HTMLElement {
     const btn = container2.createEl("button", { cls: "wp-icon-btn" });
     btn.setAttr("title", title2);
     this.appendIcon(btn, icon2);
@@ -277,8 +279,8 @@ export const WeiXinMpPublisherPreviewView = class extends ItemView {
   // ============================================================
   // Popovers
   // ============================================================
-  handleDocumentMouseDown(e3) {
-    const target = e3.target;
+  handleDocumentMouseDown(e3: MouseEvent) {
+    const target: HTMLElement | null = e3.target as HTMLElement | null;
     if (this.accountMenuOpen && this.accountMenuWrapEl && !this.accountMenuWrapEl.contains(target)) {
       this.closeAccountMenu();
     }
@@ -360,7 +362,7 @@ export const WeiXinMpPublisherPreviewView = class extends ItemView {
       this.plugin.openAccountConfigModal();
     });
   }
-  async handleAccountSwitch(accountId) {
+  async handleAccountSwitch(accountId: string) {
     this.plugin.settings.preferredAccountId = accountId;
     await this.plugin.saveSettings();
     this.closeAccountMenu();
@@ -527,7 +529,7 @@ export const WeiXinMpPublisherPreviewView = class extends ItemView {
       this.plugin.openExternalUrl("https://blog.discoverlabs.ac.cn/downloads/weixin-mp-publisher/");
     });
   }
-  addMoreMenuItem(icon2, text6, meta3, onClick, metaVariant = null) {
+  addMoreMenuItem(icon2: string, text6: string, meta3: string | null, onClick: (e: MouseEvent) => void, metaVariant: string | null = null) {
     if (!this.moreMenuEl) return;
     const row = this.moreMenuEl.createDiv({ cls: "wp-menu-item" });
     const iconEl = row.createEl("span", { cls: "wp-menu-icon" });
@@ -558,7 +560,7 @@ export const WeiXinMpPublisherPreviewView = class extends ItemView {
       );
     }
   }
-  setToolbarHidden(hidden) {
+  setToolbarHidden(hidden: boolean) {
     this.toolbarHidden = hidden;
     if (hidden) {
       this.toolbarEl?.hide();
@@ -588,7 +590,7 @@ export const WeiXinMpPublisherPreviewView = class extends ItemView {
   /**
    * 计算元素相对于滚动容器顶部的偏移量（考虑滚动位置）
    */
-  offsetInContainer(el, container2) {
+  offsetInContainer(el: HTMLElement, container2: HTMLElement): number {
     const elRect = el.getBoundingClientRect();
     const cRect = container2.getBoundingClientRect();
     return elRect.top - cRect.top + container2.scrollTop;
@@ -597,7 +599,7 @@ export const WeiXinMpPublisherPreviewView = class extends ItemView {
    * 标题锚点同步：按标题分段，在段落内比例对齐。
    * 返回 true 表示成功；false 表示没有找到匹配标题，调用方应降级为纯比例。
    */
-  syncByHeading(srcEl, tgtEl, srcSelector, tgtSelector) {
+  syncByHeading(srcEl: HTMLElement, tgtEl: HTMLElement, srcSelector: string, tgtSelector: string): boolean {
     const srcHeadings = Array.from(srcEl.querySelectorAll(srcSelector));
     const tgtHeadings = Array.from(tgtEl.querySelectorAll(tgtSelector));
     if (srcHeadings.length === 0 || tgtHeadings.length === 0) return false;
@@ -637,8 +639,8 @@ export const WeiXinMpPublisherPreviewView = class extends ItemView {
   }
   startScrollSync() {
     this.syncStatusLabel = "请先滚动编辑器校准";
-    const captureHandler = (e3) => {
-      const target = e3.target;
+    const captureHandler = (e3: Event) => {
+      const target = e3.target as HTMLElement | null;
       if (!target || target === activeDocument.documentElement || target === activeDocument.body) return;
       if (target === this.previewEl || this.previewEl?.contains(target)) return;
       if (target.scrollHeight <= target.clientHeight + 10) return;
@@ -751,7 +753,7 @@ export const WeiXinMpPublisherPreviewView = class extends ItemView {
     );
     const articleEl = this.previewEl.createDiv({ cls: "wp-article" });
     articleEl.empty();
-    const doc = new DOMParser().parseFromString(payload.result.html, "text/html");
+    const doc = new DOMParser().parseFromString(payload.result.html as string, "text/html");
     while (doc.body.firstChild) {
       articleEl.appendChild(doc.body.firstChild);
     }
@@ -773,7 +775,7 @@ export const WeiXinMpPublisherPreviewView = class extends ItemView {
       this.appendIcon(this.metaCoverEl, "image");
     }
   }
-  updateMetaCard(draft) {
+  updateMetaCard(draft: Record<string, string> | undefined) {
     const title2 = draft?.title ?? this.titleInputEl?.value ?? "";
     const author = draft?.author ?? this.authorInputEl?.value ?? "";
     const cover = draft?.cover ?? this.coverInputEl?.value ?? "";
@@ -809,14 +811,14 @@ export const WeiXinMpPublisherPreviewView = class extends ItemView {
       this.renderCoverThumb(this.coverThumbEl, cover, 24);
     }
   }
-  inferCoverSource(cover) {
+  inferCoverSource(cover: string): string {
     const trimmed = cover.trim();
     if (!trimmed) return "none";
     const defaultCover = this.plugin.getPreferredAccountDefaultCover().trim();
     if (defaultCover && defaultCover === trimmed) return "account-default";
     return "explicit";
   }
-  renderCoverThumb(el, coverPath, iconSize) {
+  renderCoverThumb(el: HTMLElement, coverPath: string, iconSize: number) {
     el.empty();
     const trimmed = coverPath.trim();
     if (!trimmed) {
@@ -844,7 +846,7 @@ export const WeiXinMpPublisherPreviewView = class extends ItemView {
     });
     el.appendChild(img);
   }
-  resolveCoverSrc(path4) {
+  resolveCoverSrc(path4: string): string | null {
     if (/^https?:\/\//i.test(path4) || path4.startsWith("data:")) {
       return path4;
     }
@@ -903,7 +905,7 @@ export const WeiXinMpPublisherPreviewView = class extends ItemView {
     if (!this.moreButtonEl) return;
     this.moreButtonEl.removeClass("has-badge");
   }
-  getInitial(name) {
+  getInitial(name: string): string {
     const trimmed = (name || "").trim();
     if (!trimmed) return "?";
     return Array.from(trimmed)[0] ?? "?";
@@ -911,7 +913,7 @@ export const WeiXinMpPublisherPreviewView = class extends ItemView {
   // ============================================================
   // Icon helpers
   // ============================================================
-  appendIcon(container2, name, opts = {}) {
+  appendIcon(container2: HTMLElement, name: string, opts: { size?: number } = {}): SVGElement {
     const size4 = opts.size;
     const svg2 = activeDocument.createElementNS(SVG_NS, "svg");
     svg2.setAttribute("viewBox", "0 0 24 24");
@@ -936,7 +938,8 @@ export const WeiXinMpPublisherPreviewView = class extends ItemView {
     return svg2;
   }
 };
-const ICON_PATHS = {
+type IconPathSpec = { tag: string; attrs: Record<string, string> };
+const ICON_PATHS: Record<string, IconPathSpec[]> = {
   send: [
     { tag: "path", attrs: { d: "M22 2L11 13" } },
     { tag: "path", attrs: { d: "M22 2L15 22L11 13L2 9L22 2Z" } }
