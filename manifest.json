@@ -1,7 +1,7 @@
 {
   "id": "weixin-mp-publisher",
   "name": "WeiXin MP Publisher",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "minAppVersion": "1.12.0",
   "description": "\u5fae\u4fe1\u516c\u4f17\u53f7\u53d1\u5e03\u5de5\u5177 | Publish WeChat Official Account articles with formatting, image upload, and draft push.",
   "author": "SKYue",

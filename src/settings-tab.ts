@@ -112,7 +112,13 @@ export const WeiXinMpPublisherSettingTab = class extends PluginSettingTab {
         account.appSecret = value2;
         void this.plugin.saveSettings();
       });
-      const apiKeySetting = new Setting(cardEl).setName("API Key").setDesc("使用中转服务 API Key，享受稳定IP地址和发布服务，中转服务加密保存 AppID，绝不保存 AppSecret。");
+      const apiKeyDesc = new DocumentFragment();
+      apiKeyDesc.append("使用中转服务 API Key，享受稳定IP地址和发布服务，中转服务加密保存 AppID，绝不保存 AppSecret。");
+      const helpLink = document.createElement("a");
+      helpLink.href = "https://www.skyue.com/weixin-mp-publisher.html";
+      helpLink.textContent = "联系帮助";
+      apiKeyDesc.appendChild(helpLink);
+      const apiKeySetting = new Setting(cardEl).setName("API Key").setDesc(apiKeyDesc);
       addSecretTextField2(apiKeySetting, account.apiKey ?? "", (value2) => {
         account.apiKey = value2;
         void this.plugin.saveSettings();
