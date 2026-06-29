@@ -1,4 +1,7 @@
 import { App, TFile, MarkdownRenderer, Component } from 'obsidian';
+import katex from 'katex';
+// @ts-ignore - imported as text via esbuild loader
+import katexCSS from 'katex/dist/katex.min.css';
 const IMAGE_EXTENSIONS = /* @__PURE__ */ new Map([
   ["png", "image/png"],
   ["jpg", "image/jpeg"],
@@ -9,7 +12,6 @@ const IMAGE_EXTENSIONS = /* @__PURE__ */ new Map([
   ["bmp", "image/bmp"]
 ]);
 let mermaidPromise = null;
-let mathJaxContextPromise = null;
 const RESOLVED_ASSET_SOURCE_MAP: Map<string, string> = /* @__PURE__ */ new Map();
 const RESOLVED_ASSET_SOURCE_PREFIX_MAP: Map<string, string> = /* @__PURE__ */ new Map();
 const RESOLVED_ASSET_PREFIX_LENGTH = 256;
@@ -244,41 +246,22 @@ async function getMermaidRenderer(): Promise<{ render(id: string, code: string, 
   return mermaidPromise;
 }
 /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/require-await -- Mermaid loaded dynamically via globals, no TS types available */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return -- MathJax loaded dynamically via import(), no TS types available */
 
-async function getMathJaxContext(): Promise<{ convert: (expression: string, options: { display: boolean }) => unknown; adaptor: { outerHTML: (node: unknown) => string } }> {
-  if (!mathJaxContextPromise) {
-    mathJaxContextPromise = Promise.all([
-      import('mathjax-full/js/mathjax.js'),
-      import('mathjax-full/js/input/tex.js'),
-      import('mathjax-full/js/output/svg.js'),
-      import('mathjax-full/js/adaptors/liteAdaptor.js'),
-      import('mathjax-full/js/handlers/html.js'),
-      import('mathjax-full/js/input/tex/AllPackages.js')
-    ]).then(([mathjaxModule, texModule, svgModule, adaptorModule, handlerModule, packagesModule]) => {
-      const adaptor = adaptorModule.liteAdaptor();
-      handlerModule.RegisterHTMLHandler(adaptor);
-      const tex = new texModule.TeX({
-        packages: packagesModule.AllPackages
-      });
-      const svg2 = new svgModule.SVG({
-        fontCache: "none"
-      });
-      const document2 = mathjaxModule.mathjax.document("", {
-        InputJax: tex,
-        OutputJax: svg2
-      });
-      return {
-        convert: document2.convert.bind(document2),
-        adaptor: {
-          outerHTML: (node2: unknown) => adaptor.outerHTML(node2)
-        }
-      };
-    });
-  }
-  return await mathJaxContextPromise;
+function measureKatex(expression: string, display: boolean): { width: number; height: number } {
+  const host = activeDocument.createElement("div");
+  host.style.cssText = "position:absolute;visibility:hidden;top:-9999px;left:-9999px;";
+  host.innerHTML = katex.renderToString(expression, {
+    throwOnError: false,
+    displayMode: display,
+    output: "html"
+  });
+  activeDocument.body.appendChild(host);
+  const rect = host.getBoundingClientRect();
+  const w = Math.max(1, Math.ceil(rect.width || 200));
+  const h = Math.max(1, Math.ceil(rect.height || 40));
+  host.remove();
+  return { width: w, height: h };
 }
-/* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return -- MathJax loaded dynamically via import(), no TS types available */
 function createHiddenRenderHost(className: string): HTMLElement {
   const host = activeDocument.createElement("div");
   host.className = `weixin-mp-publisher-hidden-host ${className}`;
@@ -351,9 +334,24 @@ async function renderMermaidToDataUrl(app: App, sourceFile: TFile, code: string)
   }
 }
 async function renderMathToDataUrl(expression: string, display: boolean): Promise<string> {
-  const { convert, adaptor } = await getMathJaxContext();
-  const node2 = convert(normalizeMathExpression(expression), { display });
-  const svgMarkup = adaptor.outerHTML(node2);
+  const normalized = normalizeMathExpression(expression);
+  const html = katex.renderToString(normalized, {
+    throwOnError: false,
+    displayMode: display,
+    output: "html"
+  });
+  const dims = measureKatex(normalized, display);
+  const padding = 8;
+  const svgWidth = dims.width + padding * 2;
+  const svgHeight = dims.height + padding * 2;
+  const svgMarkup = `<svg xmlns="http://www.w3.org/2000/svg" width="${svgWidth}" height="${svgHeight}">
+<foreignObject width="100%" height="100%">
+<div xmlns="http://www.w3.org/1999/xhtml" style="padding:${padding}px">
+<style>${katexCSS}</style>
+${html}
+</div>
+</foreignObject>
+</svg>`;
   return svgMarkupToPngDataUrl(svgMarkup);
 }
 // eslint-disable-next-line @typescript-eslint/require-await -- function signature requires Promise return for API consistency

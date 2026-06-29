@@ -57,7 +57,8 @@ async function build() {
     target: 'es2022',
     external: ['obsidian'],
     sourcemap: false,
-    minify: false,
+    minify: true,
+    loader: { '.css': 'text' },
     treeShaking: true,
     banner: { js: '"use strict";' },
     write: !isWatch, // In watch mode, we need to post-process manually
